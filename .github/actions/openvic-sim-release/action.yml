@@ -1,0 +1,49 @@
+name: Release OpenVic-Simulation
+description: Setup, Build, and Release OpenVic-Simulation
+
+inputs:
+  target:
+    description: Repo to publish this release to
+    default: 'OpenVic-Simulation'
+    type: string
+  prerelease:
+    description: Pre-release
+    type: boolean
+    required: true
+  token:
+    description: Github Token to publish to target
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Download library assets
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        path: "${{ github.workspace }}/library"
+        pattern: "libopenvic-simulation.*"
+        merge-multiple: true
+
+    - name: Download executable assets
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        pattern: "openvic-simulation.headless.*"
+        merge-multiple: true
+
+    - name: Zip library assets
+      uses: thedoctor0/zip-release@b57d897cb5d60cb78b51a507f63fa184cfe35554 # v0.7.6
+      with:
+        type: "zip"
+        filename: "libopenvic-simulation.zip"
+        directory: "${{ github.workspace }}/library/"
+
+    - name: Create and upload asset
+      uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
+      with:
+        allowUpdates: true
+        artifacts: "${{ github.workspace }}/*"
+        omitNameDuringUpdate: true
+        omitBodyDuringUpdate: true
+        prerelease: ${{ inputs.prerelease }}
+        token: ${{ inputs.token }}
+        repo: ${{ inputs.target }}

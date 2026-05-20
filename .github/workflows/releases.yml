@@ -1,0 +1,96 @@
+name: 🖥️ Releases
+
+on:
+  push:
+    tags: ["**"]
+
+permissions: {}
+
+jobs:
+  static-checks-release:
+    name: Code style, file formatting, and docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0 # Treeless clone. Slightly less performant than a shallow clone, but makes finding diffs instantaneous.
+          filter: tree:0 # See: https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/
+
+      - name: Install APT dependencies
+        uses: awalsh128/cache-apt-pkgs-action@acb598e5ddbc6f68a970c5da0688d2f3a9f04d05 # v1.6.0
+        with:
+          packages: libxml2-utils
+
+      - name: Style checks via prek
+        uses: j178/prek-action@bdca6f102f98e2b4c7029491a53dfd366469e33d # v2.0.4
+
+  build-release:
+    name: Build Release
+    needs: static-checks-release
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - identifier: windows-release
+            os: windows-latest
+            name: 🏁 Windows Release
+            target: template_release
+            platform: windows
+            arch: x86_64
+            scons-flags: ''
+
+          - identifier: macos-release
+            os: macos-latest
+            name: 🍎 macOS (universal) Release
+            target: template_release
+            platform: macos
+            arch: universal
+            scons-flags: lto=full
+
+          - identifier: linux-release
+            os: ubuntu-latest
+            name: 🐧 Linux Release
+            runner: ubuntu-22.04
+            target: template_release
+            platform: linux
+            arch: x86_64
+            scons-flags: lto=full use_static_cpp=yes
+
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Build
+        uses: ./.github/actions/openvic-sim-build
+        with:
+          identifier: ${{ matrix.identifier }}
+          target: ${{ matrix.target }}
+          platform: ${{ matrix.platform }}
+          arch: ${{ matrix.arch }}
+          scons-flags: use_hot_reload=no build_ovsim_tests=no debug_symbols=yes ${{ matrix.scons-flags }}
+
+  publish-release:
+    runs-on: ubuntu-latest
+    needs: build-release
+    permissions:
+      contents: write  # May be needed to publish release
+      id-token: write  # Needed for trusted publishing
+
+    steps:
+      - name: Shallow Clone
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 1 # See: https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/
+
+      - name: Publish Release
+        uses: ./.github/actions/openvic-sim-release
+        with:
+          prerelease: ${{ contains('["alpha", "beta", "rc", "snapshot"]', github.ref) }}
+          token: ${{ secrets.GITHUB_TOKEN }}

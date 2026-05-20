@@ -1,0 +1,149 @@
+name: 🌘 Nightly Releases
+on:
+  schedule:
+    - cron: '23 0 * * *'
+  workflow_dispatch:
+
+env:
+  TARGET_REPO: OpenVic-Simulation-nightly-builds
+
+permissions: {}
+
+jobs:
+  nightly-check:
+    name: Check for new commits
+    if: github.event_name == 'workflow_dispatch' || !vars.DISABLE_SIM_NIGHTLYS
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    outputs:
+      commit: ${{ steps.check_for_new_commits.outputs.commit }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Retrieve HEAD commit hash
+        id: head
+        shell: bash
+        run: echo "head=$(git rev-parse HEAD)" | tee -a "${GITHUB_OUTPUT}"
+
+      - name: Cache nightly commit hash
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+        env:
+          SEGMENT_DOWNLOAD_TIMEOUT_MINS: 1
+        with:
+          path: .nightly_commit_hash
+          key: release-nightly-${{ steps.head.outputs.head }}
+          restore-keys: |
+            release-nightly-
+
+      - name: Check for new commits
+        id: check_for_new_commits
+        shell: bash
+        run: |
+          relevant_files=(
+            "deps/*"
+            "misc/*"
+            "scripts"
+            "src/*.hpp"
+            "src/*.cpp"
+            ':!src/openvic-simulation/pch.hpp'
+            ':!src/openvic-simulation/pch.cpp'
+            "pyproject.toml"
+            "SConstruct"
+            ".github/workflows/builds.yml"
+            ".github/workflows/nightly-builds.yml"
+          )
+          if [[ -f .nightly_commit_hash ]]; then
+            limit_args=(
+              "$(cat .nightly_commit_hash)..HEAD"
+            )
+          else
+            limit_args=(
+              --since="24 hours ago"
+            )
+          fi
+          echo "commit=$(git log --format=%H -1 "${limit_args[@]}" -- "${relevant_files[@]}")" | tee -a "${GITHUB_OUTPUT}"
+
+      - name: Record new nightly commit hash
+        env:
+          HEAD: ${{ steps.head.outputs.head }}
+        shell: bash
+        run: echo "${HEAD}" | tee .nightly_commit_hash
+
+  nightly-build:
+    name: Build Release
+    needs: nightly-check
+    if: needs.nightly-check.outputs.commit
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write  # May be needed to publish release
+      id-token: write  # Needed for trusted publishing
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - identifier: windows-release
+            os: windows-latest
+            name: 🏁 Windows Release
+            target: template_release
+            platform: windows
+            arch: x86_64
+            scons-flags: ''
+
+          - identifier: macos-release
+            os: macos-latest
+            name: 🍎 macOS (universal) Release
+            target: template_release
+            platform: macos
+            arch: universal
+            scons-flags: 'lto=full'
+
+          - identifier: linux-release
+            os: ubuntu-latest
+            name: 🐧 Linux Release
+            runner: ubuntu-22.04
+            target: template_release
+            platform: linux
+            arch: x86_64
+            scons-flags: 'lto=full use_static_cpp=yes'
+
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Build
+        uses: ./.github/actions/openvic-sim-build
+        with:
+          identifier: ${{ matrix.identifier }}
+          target: ${{ matrix.target }}
+          platform: ${{ matrix.platform }}
+          arch: ${{ matrix.arch }}
+          scons-flags: use_hot_reload=no build_ovsim_tests=no debug_symbols=yes ${{ matrix.scons-flags }}
+
+  publish-nightly-release:
+    name: Publish Release
+    runs-on: ubuntu-latest
+    needs: nightly-build
+    permissions:
+      contents: write  # May be needed to publish release
+      id-token: write  # Needed for trusted publishing
+
+    steps:
+      - name: Shallow Clone
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 1 # See: https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/
+
+      - name: Publish Nightly Release
+        uses: ./.github/actions/openvic-sim-release
+        with:
+          prerelease: true
+          target: ${{ github.env.TARGET_REPO }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
