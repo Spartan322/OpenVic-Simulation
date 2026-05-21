@@ -100,8 +100,11 @@ Default(gen_commit_info, gen_license_info, gen_author_info)
 
 # Exclude pch.cpp from the regular source list so it isn't compiled twice
 # (env.PCH below builds it once with /Yc).
+pch_hpp_source = "openvic-simulation/pch.hpp"
 pch_cpp_source = source_path + "/pch.cpp"
 pch_cpp_variant = sim_variant + "/pch.cpp"
+env.SetupPCH(pch_hpp_source, pch_cpp_source)
+
 sources = env.GlobRecursiveVariant("*.cpp", source_path, sim_variant, pch_cpp_source)
 env.simulation_sources = sources
 
@@ -110,13 +113,13 @@ env["OBJSUFFIX"] = suffix + env["OBJSUFFIX"]
 library_name = "libopenvic-simulation{}{}".format(suffix, env["LIBSUFFIX"])
 
 # Precompiled header
-if env.get("is_msvc", False):
-    pch_header_rel = "openvic-simulation/pch.hpp"
-    env["PCHSTOP"] = pch_header_rel
-    pch_pch, pch_obj = env.PCH(pch_cpp_variant)
-    env["PCH"] = pch_pch
-    env.Append(CCFLAGS=["/FI" + pch_header_rel])
-    sources.append(pch_obj)
+# if env.get("is_msvc", False):
+#     pch_header_rel = "openvic-simulation/pch.hpp"
+#     env["PCHSTOP"] = pch_header_rel
+#     pch_pch, pch_obj = env.PCH(pch_cpp_variant)
+#     env["PCH"] = pch_pch
+#     env.Append(CCFLAGS=["/FI" + pch_header_rel])
+#     sources.append(pch_obj)
 
 default_args = []
 

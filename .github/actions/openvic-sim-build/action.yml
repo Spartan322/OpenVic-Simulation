@@ -18,11 +18,14 @@ inputs:
     type: choice
     options: [x86_64, universal]
   scons-flags:
-    description: |
-      Additional flags to send to SCons
+    description: Additional flags to send to SCons
     required: false
-    default: 'build_ovsim_library=yes build_ovsim_benchmarks=yes'
+    default: 'build_ovsim_benchmarks=yes'
     type: string
+  build-library:
+    description: Whether to build the library file
+    default: true
+    type: boolean
   cache-base-branch:
     description: |
       Branch to base the cache upon
@@ -58,13 +61,16 @@ runs:
       with:
         packages: build-essential pkg-config libtbb-dev
 
-    - name: Set g++ to version 12
+    - name: Install and Set g++ to version 13
       if: ${{ inputs.platform == 'linux' }}
       shell: sh
       run: |
         g++ --version
-        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 12
-        sudo update-alternatives --set g++ /usr/bin/g++-12
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+        sudo apt update -y
+        sudo apt install g++-13
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 13
+        sudo update-alternatives --set g++ /usr/bin/g++-13
         g++ --version
 
     - name: Compile with SCons
@@ -72,7 +78,7 @@ runs:
       with:
         platform: ${{ inputs.platform }}
         target: ${{ inputs.target }}
-        sconsflags: arch=${{ inputs.arch }} ${{ inputs.scons-flags }}
+        sconsflags: arch=${{ inputs.arch }} ${{ inputs.build-library && 'build_ovsim_library=yes' }} ${{ inputs.scons-flags }}
 
     - name: Delete compilation files
       if: ${{ inputs.platform == 'windows' }}
