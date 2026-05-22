@@ -84,6 +84,7 @@
         }
     ],
     "template": "## Release Notes for OpenVic-Simulation #{{UPCOMING_RELEASE_VERSION}}#{{ALPHA_TAG}}#{{BETA_TAG}}#{{RC_TAG}} #{{PRE_RELEASE_VERSION}}\n### Changelog since [#{{SINCE_VERSION}}](https://github.com/username/repo/releases/tag/#{{SINCE_VERSION}})\n#{{CHANGELOG}}\n**Full Changelog**: #{{RELEASE_DIFF}}",
+    "empty_template": "## Release Notes for OpenVic-Simulation #{{UPCOMING_RELEASE_VERSION}}#{{ALPHA_TAG}}#{{BETA_TAG}}#{{RC_TAG}} #{{PRE_RELEASE_VERSION}}\n### Changelog since [#{{SINCE_VERSION}}](https://github.com/username/repo/releases/tag/#{{SINCE_VERSION}})\nNo Pull Requests\n**Full Changelog**: #{{RELEASE_DIFF}}",
     "pr_template": "* #{{TITLE}} by @#{{AUTHOR}} in #{{URL}}",
     "max_pull_requests": 1000,
     "max_back_track_time_days": 365
