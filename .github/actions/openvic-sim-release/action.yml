@@ -99,8 +99,8 @@ runs:
         artifacts: "libopenvic-simulation.zip,openvic-simulation.headless.**"
         omitNameDuringUpdate: true
         omitBodyDuringUpdate: true
-        tag: ${{ contains('refs/tags', inputs.to-ref) && env.TO_TAG }}
-        commit: ${{ !contains('refs/tags', inputs.to-ref) && inputs.to-ref }}
+        tag: ${{ contains('refs/tags', inputs.to-ref) && env.TO_TAG || '' }}
+        commit: ${{ !contains('refs/tags', inputs.to-ref) && inputs.to-ref || '' }}
         prerelease: ${{ inputs.prerelease }}
         draft: ${{ !inputs.snapshot-release || !inputs.nightly-release }}
         repo: ${{ inputs.target }}
