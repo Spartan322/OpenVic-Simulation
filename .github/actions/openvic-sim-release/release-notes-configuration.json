@@ -32,27 +32,30 @@
             "name": "ALPHA_TAG",
             "source": "TO_TAG",
             "transformer": {
-                "method": "regexr",
+                "method": "replace",
                 "pattern": "(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((alpha)\\.(\\d+)))",
-                "target": " Alpha "
+                "target": " Alpha ",
+                "on_empty": ""
             }
         },
         {
             "name": "BETA_TAG",
             "source": "TO_TAG",
             "transformer": {
-                "method": "regexr",
+                "method": "replace",
                 "pattern": "(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((beta)\\.(\\d+)))",
-                "target": " Beta "
+                "target": " Beta ",
+                "on_empty": ""
             }
         },
         {
             "name": "RC_TAG",
             "source": "TO_TAG",
             "transformer": {
-                "method": "regexr",
+                "method": "replace",
                 "pattern": "(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((rc)\\.(\\d+)))",
-                "target": " Release Candidate "
+                "target": " Release Candidate ",
+                "on_empty": ""
             }
         },
         {
