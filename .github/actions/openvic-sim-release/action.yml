@@ -101,6 +101,7 @@ runs:
         omitBodyDuringUpdate: true
         tag: ${{ contains(inputs.to-ref, 'refs/tags') && env.TO_TAG || '' }}
         commit: ${{ !contains(inputs.to-ref, 'refs/tags') && inputs.to-ref || '' }}
+        body: ${{ steps.build-release-notes.outputs.changelog || steps.build-snapshot-release-notes.outputs.changelog || steps.build-nightly-release-notes.outputs.changelog || '' }}
         prerelease: ${{ inputs.prerelease }}
         draft: ${{ !inputs.snapshot-release || !inputs.nightly-release }}
         repo: ${{ inputs.target }}
