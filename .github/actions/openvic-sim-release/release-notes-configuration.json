@@ -11,51 +11,12 @@
     },
     "custom_placeholders": [
         {
-            "name": "UPCOMING_RELEASE_VERSION",
+            "name": "RELEASE_VERSION",
             "source": "TO_TAG",
             "transformer": {
                 "method": "regexr",
                 "pattern": "(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((alpha|beta|rc)\\.(\\d+)))?",
-                "target": "$1"
-            }
-        },
-        {
-            "name": "PRE_RELEASE_VERSION",
-            "source": "TO_TAG",
-            "transformer": {
-                "method": "regexr",
-                "pattern": "(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((alpha|beta|rc)\\.(\\d+)))?",
-                "target": "$4"
-            }
-        },
-        {
-            "name": "ALPHA_TAG",
-            "source": "TO_TAG",
-            "transformer": {
-                "method": "replaceAll",
-                "pattern": "(?:refs\\/tags\\/)?(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((alpha)\\.(\\d+)))",
-                "target": " Alpha ",
-                "on_empty": ""
-            }
-        },
-        {
-            "name": "BETA_TAG",
-            "source": "TO_TAG",
-            "transformer": {
-                "method": "replaceAll",
-                "pattern": "(?:refs\\/tags\\/)?(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((beta)\\.(\\d+)))",
-                "target": " Beta ",
-                "on_empty": ""
-            }
-        },
-        {
-            "name": "RC_TAG",
-            "source": "TO_TAG",
-            "transformer": {
-                "method": "replaceAll",
-                "pattern": "(?:refs\\/tags\\/)?(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((rc)\\.(\\d+)))",
-                "target": " Release Candidate ",
-                "on_empty": ""
+                "target": "$1 <<capitalize:$3>> $4"
             }
         },
         {
@@ -86,8 +47,8 @@
             "consume": true
         }
     ],
-    "template": "## Release Notes for OpenVic-Simulation #{{UPCOMING_RELEASE_VERSION}}#{{ALPHA_TAG}}#{{BETA_TAG}}#{{RC_TAG}} #{{PRE_RELEASE_VERSION}}\n### Changelog since [#{{SINCE_VERSION}}](https://github.com/username/repo/releases/tag/#{{SINCE_VERSION}})\n#{{CHANGELOG}}\n**Full Changelog**: #{{RELEASE_DIFF}}",
-    "empty_template": "## Release Notes for OpenVic-Simulation #{{UPCOMING_RELEASE_VERSION}}#{{ALPHA_TAG}}#{{BETA_TAG}}#{{RC_TAG}} #{{PRE_RELEASE_VERSION}}\n### Changelog since [#{{SINCE_VERSION}}](https://github.com/username/repo/releases/tag/#{{SINCE_VERSION}})\nNo Pull Requests\n**Full Changelog**: #{{RELEASE_DIFF}}",
+    "template": "## Release Notes for OpenVic-Simulation #{{RELEASE_VERSION}}\n### Changelog since [#{{SINCE_VERSION}}](https://github.com/username/repo/releases/tag/#{{SINCE_VERSION}})\n#{{CHANGELOG}}\n\n**Full Changelog**: #{{RELEASE_DIFF}}",
+    "empty_template": "## Release Notes for OpenVic-Simulation #{{RELEASE_VERSION}}\n### No Pull Requests since [#{{SINCE_VERSION}}](https://github.com/username/repo/releases/tag/#{{SINCE_VERSION}})\n\n**Full Changelog**: #{{RELEASE_DIFF}}",
     "pr_template": "* #{{TITLE}} by @#{{AUTHOR}} in #{{URL}}",
     "max_pull_requests": 1000,
     "max_back_track_time_days": 365

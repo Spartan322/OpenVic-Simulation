@@ -34,7 +34,6 @@ runs:
   using: composite
   steps:
     - name: Build Release Notes
-      id: build-release-notes
       if: inputs.snapshot-release == 'false' && inputs.nightly-release == 'false'
       uses: mikepenz/release-changelog-builder-action@348e88fab4c37338b1e803ceb2d4a7a5db6c0833 # v6.2.2
       env:
@@ -43,9 +42,9 @@ runs:
         configuration: ".github/actions/openvic-sim-release/release-notes-configuration.json"
         toTag: ${{ inputs.to-ref }}
         fromTag: ${{ inputs.from-ref }}
+        outputFile: release-notes.md
 
     - name: Build Snapshot Release Notes
-      id: build-snapshot-release-notes
       if: inputs.snapshot-release == 'true' && inputs.nightly-release == 'false'
       uses: mikepenz/release-changelog-builder-action@348e88fab4c37338b1e803ceb2d4a7a5db6c0833 # v6.2.2
       env:
@@ -54,9 +53,9 @@ runs:
         configuration: ".github/actions/openvic-sim-release/snapshot-release-notes-configuration.json"
         toTag: ${{ inputs.to-ref }}
         fromTag: ${{ inputs.from-ref }}
+        outputFile: release-notes.md
 
     - name: Build Nightly Release Notes
-      id: build-nightly-release-notes
       if: inputs.nightly-release == 'true' && inputs.snapshot-release == 'false'
       uses: mikepenz/release-changelog-builder-action@348e88fab4c37338b1e803ceb2d4a7a5db6c0833 # v6.2.2
       env:
@@ -65,6 +64,11 @@ runs:
         configuration: ".github/actions/openvic-sim-release/nightly-release-notes-configuration.json"
         toTag: ${{ inputs.to-ref }}
         fromTag: ${{ inputs.from-ref }}
+        outputFile: release-notes.md
+
+    - name: Process release-notes.md
+      shell: bash
+      run: sed -i 's/<<capitalize:\(.\+\)>>/\u\1/g' release-notes.md
 
     - name: Make library directory
       shell: sh
@@ -104,7 +108,7 @@ runs:
         omitBodyDuringUpdate: true
         tag: ${{ contains(inputs.to-ref, 'refs/tags') && env.TO_TAG || '' }}
         commit: ${{ !contains(inputs.to-ref, 'refs/tags') && inputs.to-ref || '' }}
-        body: ${{ steps.build-release-notes.outputs.changelog || steps.build-snapshot-release-notes.outputs.changelog || steps.build-nightly-release-notes.outputs.changelog || '' }}
+        bodyFile: release-notes.md
         prerelease: ${{ inputs.prerelease }}
         draft: ${{ inputs.snapshot-release == 'false' && inputs.nightly-release == 'false' }}
         repo: ${{ inputs.target }}
