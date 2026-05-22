@@ -94,7 +94,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run:
-          echo "FROM_REF=$(gh release list --json tagName --jq '[.[] | ${{ contains('-snapshot', github.ref) && '' || 'select(.tagName | contains("-snapshot") | not)' }}][0]')" >> $GITHUB_ENV
+          echo "FROM_REF=$(gh release list --json tagName --jq '[.[] ${{ contains('-snapshot', github.ref) && '' || '| select(.tagName | contains("-snapshot") | not)' }}.tagName][0]')" >> $GITHUB_ENV
 
       - name: Publish Release
         uses: ./.github/actions/openvic-sim-release
