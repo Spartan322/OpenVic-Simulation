@@ -33,7 +33,7 @@
             "source": "TO_TAG",
             "transformer": {
                 "method": "replace",
-                "pattern": "(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((alpha)\\.(\\d+)))",
+                "pattern": "(refs/tags/(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((alpha)\\.(\\d+))))?",
                 "target": " Alpha ",
                 "on_empty": ""
             }
@@ -43,7 +43,7 @@
             "source": "TO_TAG",
             "transformer": {
                 "method": "replace",
-                "pattern": "(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((beta)\\.(\\d+)))",
+                "pattern": "(refs/tags/(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((beta)\\.(\\d+))))?",
                 "target": " Beta ",
                 "on_empty": ""
             }
@@ -53,7 +53,7 @@
             "source": "TO_TAG",
             "transformer": {
                 "method": "replace",
-                "pattern": "(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((rc)\\.(\\d+)))",
+                "pattern": "(refs/tags/(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((rc)\\.(\\d+))))?",
                 "target": " Release Candidate ",
                 "on_empty": ""
             }
