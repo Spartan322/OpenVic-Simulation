@@ -32,8 +32,8 @@
             "name": "ALPHA_TAG",
             "source": "TO_TAG",
             "transformer": {
-                "method": "regexr",
-                "pattern": "((?:refs\\/tags\\/)?(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((alpha)\\.(\\d+))))?",
+                "method": "match",
+                "pattern": "(?:refs\\/tags\\/)?(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((alpha)\\.(\\d+)))",
                 "target": " Alpha ",
                 "on_empty": ""
             }
@@ -42,8 +42,8 @@
             "name": "BETA_TAG",
             "source": "TO_TAG",
             "transformer": {
-                "method": "regexr",
-                "pattern": "((?:refs\\/tags\\/)?(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((beta)\\.(\\d+))))?",
+                "method": "match",
+                "pattern": "(?:refs\\/tags\\/)?(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((beta)\\.(\\d+)))",
                 "target": " Beta ",
                 "on_empty": ""
             }
@@ -52,8 +52,8 @@
             "name": "RC_TAG",
             "source": "TO_TAG",
             "transformer": {
-                "method": "regexr",
-                "pattern": "((?:refs\\/tags\\/)?(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((rc)\\.(\\d+))))?",
+                "method": "match",
+                "pattern": "(?:refs\\/tags\\/)?(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((rc)\\.(\\d+)))",
                 "target": " Release Candidate ",
                 "on_empty": ""
             }
