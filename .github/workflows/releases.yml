@@ -90,8 +90,14 @@ jobs:
         with:
           fetch-depth: 1 # See: https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/
 
+      - name: Get from-ref
+        run:
+          echo "FROM_REF=$(gh release list --json tagName --jq '[.[] | ${{ contains('-snapshot', github.ref) && '' || 'select(.tagName | contains("-snapshot") | not)' }}][0]')" >> $GITHUB_ENV
+
       - name: Publish Release
         uses: ./.github/actions/openvic-sim-release
         with:
-          prerelease: ${{ contains('["alpha", "beta", "rc", "snapshot"]', github.ref) }}
+          prerelease: ${{ contains('["-alpha", "-beta", "-rc", "-snapshot"]', github.ref) }}
+          snapshot-release: ${{ contains('-snapshot', github.ref) }}
+          from-ref: ${{ env.FROM_REF || 'ddfb34bf33f59aa52cac3f22ab60c824484cae53' }}
           token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,76 @@
+{
+    "base_branches": [
+        "master"
+    ],
+    "tag_resolver": {
+        "filter": {
+            "method": "regexr",
+            "pattern": "(\\d+\\.\\d+(?:\\.\\d+)?)(?:-(((alpha|beta|rc)\\.(\\d+))|(?:((?:((snapshot)(?:\\.(dev))?)\\.(\\d+))|nightly)\\+([a-zA-Z0-9]{7,40}))))?"
+        },
+        "transformer": {
+            "method": "regexr",
+            "pattern": "redot-(\\d+\\.\\d+(?:\\.\\d+)?-(?:(alpha|beta|rc)\\.(\\d+)|(stable)))",
+            "target": "$1"
+        }
+    },
+    "custom_placeholders": [
+        {
+            "name": "RELEASE_VERSION",
+            "source": "TO_TAG",
+            "transformer": {
+                "method": "regexr",
+                "pattern": "(\\d+\\.\\d+(?:\\.\\d+)?)(?:-(((alpha|beta|rc)\\.(\\d+))|(?:((?:((snapshot)(?:\\.(dev))?)\\.(\\d+))|nightly)\\+([a-zA-Z0-9]{7,40}))))?",
+                "target": "$1 $2$4 $3"
+            }
+        },
+        {
+            "name": "SINCE_VERSION",
+            "source": "FROM_TAG",
+            "transformer": {
+                "method": "regexr",
+                "pattern": "(\\d+\\.\\d+(?:\\.\\d+)?)(?:-(((alpha|beta|rc)\\.(\\d+))|(?:((?:((snapshot)(?:\\.(dev))?)\\.(\\d+))|nightly)\\+([a-zA-Z0-9]{7,40}))))?",
+                "target": "$1"
+            }
+        },
+        {
+            "name": "SIMPLIFIED_TITLE",
+            "source": "TITLE",
+            "transformer": {
+                "method": "regexr",
+                "pattern": "^(\\[\\d+\\.\\d+\\] )?(.*)",
+                "target": "$2"
+            }
+        },
+        {
+            "name": "COMMIT_TO_LINE",
+            "source": "TO_TAG",
+            "transformer": {
+                "method": "replace",
+                "pattern": "([a-zA-Z0-9]{7})[a-zA-Z0-9]{33}",
+                "target": "Generated from: OpenVicProject/OpenVic-Simulation@$1\n"
+            }
+        }
+    ],
+    "categories": [
+        {
+            "title": "### Enhancements & Features",
+            "labels": [
+                "enhancement"
+            ],
+            "exhaustive": true,
+            "consume": true
+        },
+        {
+            "title": "### Bug Fixes",
+            "labels": [
+                "bug"
+            ],
+            "exhaustive": true,
+            "consume": true
+        }
+    ],
+    "template": "## Release Notes for OpenVic-Simulation #{{RELEASE_VERSION}}\n#{{COMMIT_SRC_LINE}}### What's New\n#{{CHANGELOG}}\n**Full Changelog**: #{{RELEASE_DIFF}}",
+    "pr_template": "* #{{SIMPLIFIED_TITLE}} by @#{{AUTHOR}} in #{{URL}}",
+    "max_pull_requests": 1000,
+    "max_back_track_time_days": 365
+}

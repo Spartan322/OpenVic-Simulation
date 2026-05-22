@@ -2,10 +2,26 @@ name: Release OpenVic-Simulation
 description: Setup, Build, and Release OpenVic-Simulation
 
 inputs:
-  target:
-    description: Repo to publish this release to
+  target-repo:
+    description: Repository to publish this release to
     default: 'OpenVic-Simulation'
     type: string
+  to-ref:
+    description: 'Tag/Commit to publish this release to (default: github.ref)'
+    default: ${{ github.ref }}
+    type: string
+  from-ref:
+    description: Tag/Commit to source the release notes from
+    type: string
+    required: true
+  nightly-release:
+    description: Whether the release is a nightly build
+    type: boolean
+    default: false
+  snapshot-release:
+    description: Whether the release is a snapshot release
+    type: boolean
+    default: false
   prerelease:
     description: Pre-release
     type: boolean
@@ -17,6 +33,36 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Build Release Notes
+      id: build-release-notes
+      if: ${{ !inputs.nightly-release && !inputs.snapshot-release }}
+      uses: mikepenz/release-changelog-builder-action@348e88fab4c37338b1e803ceb2d4a7a5db6c0833 # v6.2.2
+      with:
+        configurationJson: ./.github/actions/openvic-sim-release/release-notes-configuration.json
+        token: ${{ inputs.token }}
+        toTag: ${{ inputs.to-ref }}
+        fromTag: ${{ inputs.from-ref }}
+
+    - name: Build Snapshot Release Notes
+      id: build-snapshot-release-notes
+      if: inputs.snapshot-release && !inputs.nightly-release
+      uses: mikepenz/release-changelog-builder-action@348e88fab4c37338b1e803ceb2d4a7a5db6c0833 # v6.2.2
+      with:
+        configurationJson: ./.github/actions/openvic-sim-release/snapshot-release-notes-configuration.json
+        token: ${{ inputs.token }}
+        toTag: ${{ inputs.to-ref }}
+        fromTag: ${{ inputs.from-ref }}
+
+    - name: Build Nightly Release Notes
+      id: build-nightly-release-notes
+      if: inputs.nightly-release && !inputs.snapshot-release
+      uses: mikepenz/release-changelog-builder-action@348e88fab4c37338b1e803ceb2d4a7a5db6c0833 # v6.2.2
+      with:
+        configurationJson: ./.github/actions/openvic-sim-release/nightly-release-notes-configuration.json
+        token: ${{ inputs.token }}
+        toTag: ${{ inputs.to-ref }}
+        fromTag: ${{ inputs.from-ref }}
+
     - name: Make library directory
       shell: sh
       run: mkdir "${{ github.workspace }}/library/"
@@ -41,9 +87,6 @@ runs:
         filename: libopenvic-simulation.zip
         path: library
 
-    - shell: sh
-      run: ls
-
     - name: Create and upload asset
       uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
       with:
@@ -51,6 +94,8 @@ runs:
         artifacts: "libopenvic-simulation.zip,openvic-simulation.headless.**"
         omitNameDuringUpdate: true
         omitBodyDuringUpdate: true
+        commit: ${{ inputs.to-ref }}
         prerelease: ${{ inputs.prerelease }}
-        token: ${{ inputs.token }}
+        draft: ${{ !inputs.snapshot-release || !inputs.nightly-release }}
         repo: ${{ inputs.target }}
+        token: ${{ inputs.token }}

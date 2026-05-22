@@ -1,4 +1,5 @@
 name: 🌘 Nightly Releases
+
 on:
   schedule:
     - cron: '23 0 * * *'
@@ -144,6 +145,6 @@ jobs:
         uses: ./.github/actions/openvic-sim-release
         with:
           prerelease: true
-          target: ${{ github.env.TARGET_REPO }}
+          target-repo: ${{ github.env.TARGET_REPO }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
