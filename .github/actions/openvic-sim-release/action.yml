@@ -40,7 +40,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
       with:
-        configurationJson: ".github/actions/openvic-sim-release/release-notes-configuration.json"
+        configuration: ".github/actions/openvic-sim-release/release-notes-configuration.json"
         toTag: ${{ inputs.to-ref }}
         fromTag: ${{ inputs.from-ref }}
 
@@ -51,7 +51,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
       with:
-        configurationJson: ".github/actions/openvic-sim-release/snapshot-release-notes-configuration.json"
+        configuration: ".github/actions/openvic-sim-release/snapshot-release-notes-configuration.json"
         toTag: ${{ inputs.to-ref }}
         fromTag: ${{ inputs.from-ref }}
 
@@ -62,7 +62,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
       with:
-        configurationJson: ".github/actions/openvic-sim-release/nightly-release-notes-configuration.json"
+        configuration: ".github/actions/openvic-sim-release/nightly-release-notes-configuration.json"
         toTag: ${{ inputs.to-ref }}
         fromTag: ${{ inputs.from-ref }}
 
