@@ -35,7 +35,7 @@ runs:
   steps:
     - name: Build Release Notes
       id: build-release-notes
-      if: ${{ !inputs.snapshot-release && inputs.snapshot-release == inputs.nightly-release }}
+      if: ${{ !(inputs.snapshot-release && inputs.nightly-release) }}
       uses: mikepenz/release-changelog-builder-action@348e88fab4c37338b1e803ceb2d4a7a5db6c0833 # v6.2.2
       with:
         configurationJson: ./.github/actions/openvic-sim-release/release-notes-configuration.json
