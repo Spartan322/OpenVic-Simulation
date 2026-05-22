@@ -87,6 +87,11 @@ runs:
         filename: libopenvic-simulation.zip
         path: library
 
+    - name: Remove refs/tags from to-ref
+      if: contains('refs/tags', inputs.to-ref)
+      shell: bash
+      run: echo "TO_TAG=$(T='${{ inputs.to-ref }}'; T=${T#"refs/tags/"}; echo $T)" >> $GITHUB_ENV
+
     - name: Create and upload asset
       uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
       with:
@@ -94,7 +99,8 @@ runs:
         artifacts: "libopenvic-simulation.zip,openvic-simulation.headless.**"
         omitNameDuringUpdate: true
         omitBodyDuringUpdate: true
-        commit: ${{ inputs.to-ref }}
+        tag: ${{ contains('refs/tags', inputs.to-ref) && env.TO_TAG }}
+        commit: ${{ !contains('refs/tags', inputs.to-ref) && inputs.to-ref }}
         prerelease: ${{ inputs.prerelease }}
         draft: ${{ !inputs.snapshot-release || !inputs.nightly-release }}
         repo: ${{ inputs.target }}

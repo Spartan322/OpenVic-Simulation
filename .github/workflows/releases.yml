@@ -91,6 +91,8 @@ jobs:
           fetch-depth: 1 # See: https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/
 
       - name: Get from-ref
+        env:
+          GH_TOKEN: ${{ github.token }}
         run:
           echo "FROM_REF=$(gh release list --json tagName --jq '[.[] | ${{ contains('-snapshot', github.ref) && '' || 'select(.tagName | contains("-snapshot") | not)' }}][0]')" >> $GITHUB_ENV
 
