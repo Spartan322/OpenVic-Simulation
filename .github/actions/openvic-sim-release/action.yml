@@ -88,7 +88,7 @@ runs:
         path: library
 
     - name: Remove refs/tags from to-ref
-      if: contains('refs/tags', inputs.to-ref)
+      if: contains(inputs.to-ref, 'refs/tags')
       shell: bash
       run: echo "TO_TAG=$(T='${{ inputs.to-ref }}'; T=${T#"refs/tags/"}; echo $T)" >> $GITHUB_ENV
 
@@ -99,8 +99,8 @@ runs:
         artifacts: "libopenvic-simulation.zip,openvic-simulation.headless.**"
         omitNameDuringUpdate: true
         omitBodyDuringUpdate: true
-        tag: ${{ contains('refs/tags', inputs.to-ref) && env.TO_TAG || '' }}
-        commit: ${{ !contains('refs/tags', inputs.to-ref) && inputs.to-ref || '' }}
+        tag: ${{ contains(inputs.to-ref, 'refs/tags') && env.TO_TAG }}
+        commit: ${{ !contains(inputs.to-ref, 'refs/tags') && inputs.to-ref }}
         prerelease: ${{ inputs.prerelease }}
         draft: ${{ !inputs.snapshot-release || !inputs.nightly-release }}
         repo: ${{ inputs.target }}
