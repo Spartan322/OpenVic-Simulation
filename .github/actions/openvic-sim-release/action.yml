@@ -86,6 +86,8 @@ runs:
         # strip <<trim-right: and >>
         sed -i 's/[ ]*<<optional:\([^>]*\)*>>[ ]*/<<optional: \1 >>/g; s/<<optional:  >>/ /g; s/<<optional:\([^>]*\)*>>/\1/g' release-notes.md
 
+        echo "RELEASE_NAME=$(sed '2~1d; s/## Release Notes for \(\.*\)/\1/' release-notes.md)" >> $GITHUB_ENV
+
     - name: Make library directory
       shell: sh
       run: mkdir "${{ github.workspace }}/library/"
@@ -117,6 +119,7 @@ runs:
         artifacts: "libopenvic-simulation.zip,openvic-simulation.headless.**"
         omitNameDuringUpdate: true
         omitBodyDuringUpdate: true
+        name: ${{ env.RELEASE_NAME || '' }}
         tag: ${{ contains(inputs.to-ref, 'refs/tags') && env.TO_TAG || '' }}
         commit: ${{ !contains(inputs.to-ref, 'refs/tags') && inputs.to-ref || '' }}
         bodyFile: release-notes.md
