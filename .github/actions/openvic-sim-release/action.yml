@@ -73,7 +73,11 @@ runs:
 
     - name: Process release-notes.md
       shell: bash
-      run: sed -i 's/<<capitalize:\(.\+\)>>/\u\1/g' release-notes.md
+      run: |
+        # Capitalize contents of <<capitalize:contents>>, strip <<capitalize: and >>, can use as inner contents to <<trim-right:>>
+        sed -i 's/<<capitalize:\([^>]*\)*>>/\u\1/g' release-notes.md
+        # Trim right side whitespace of <<trim-right:contents>>, strip <<trim-right: and >>
+        sed -i 's/<<trim-right:\([^>]*\)*>>[ ]*/\1/g' release-notes.md
 
     - name: Make library directory
       shell: sh

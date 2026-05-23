@@ -9,7 +9,7 @@
             "transformer": {
                 "method": "regexr",
                 "pattern": "(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((?:(((snapshot)(?:\\.(dev))?)\\.(\\d+)))\\+([a-zA-Z0-9]{7,40})))",
-                "target": "$1 <<capitalize:$6>> <<capitalize:$5>> $7"
+                "target": "$1 <<trim-right:<<capitalize:$6>>>> <<capitalize:$5>> $7"
             }
         },
         {
