@@ -74,10 +74,17 @@ runs:
     - name: Process release-notes.md
       shell: bash
       run: |
-        # Capitalize contents of <<capitalize:contents>>, strip <<capitalize: and >>, can use as inner contents to <<trim-right:>>
+        # Capitalize contents of <<capitalize:contents>>
+        # Strip <<capitalize: and >>
+        # Can use as inner contents to <<optional:>>
         sed -i 's/<<capitalize:\([^>]*\)*>>/\u\1/g' release-notes.md
-        # Trim right side whitespace of <<trim-right:contents>>, strip <<trim-right: and >>
-        sed -i 's/<<trim-right:\([^>]*\)*>>[ ]*/\1/g' release-notes.md
+
+        # Trim whitespace around of <<optional:contents>>
+        # Add space to both sides of contents
+        # Replace empty double space <<optional:  >> tag (representing empty optional) with single space
+        # Replace <<optional:contents>> tag with contents
+        # strip <<trim-right: and >>
+        sed -i 's/[ ]*<<optional:\([^>]*\)*>>[ ]*/<<optional: \1 >>/g; s/<<optional:  >>/ /g; s/<<optional:\([^>]*\)*>>/\1/g' release-notes.md
 
     - name: Make library directory
       shell: sh
