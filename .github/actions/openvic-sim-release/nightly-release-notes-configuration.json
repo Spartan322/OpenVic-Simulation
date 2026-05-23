@@ -19,8 +19,8 @@
             "source": "TO_TAG",
             "transformer": {
                 "method": "regexr",
-                "pattern": "(\\d+\\.\\d+(?:\\.\\d+)?)(?:-(((alpha|beta|rc)\\.(\\d+))|(?:((?:((snapshot)(?:\\.(dev))?)\\.(\\d+))|nightly)\\+([a-zA-Z0-9]{7,40}))))?",
-                "target": "$1 $2$4 $3"
+                "pattern": "(\\d+\\.\\d+(?:\\.\\d+)?)(?:-((?:(nightly).(\\d{4}).(\\d{2}).(\\d{2})\\+([a-zA-Z0-9]{7,40}))))",
+                "target": "$1 <<capitalize:$3>> $4 $5 $6"
             }
         },
         {
@@ -28,25 +28,16 @@
             "source": "FROM_TAG",
             "transformer": {
                 "method": "regexr",
-                "pattern": "(\\d+\\.\\d+(?:\\.\\d+)?)(?:-(((alpha|beta|rc)\\.(\\d+))|(?:((?:((snapshot)(?:\\.(dev))?)\\.(\\d+))|nightly)\\+([a-zA-Z0-9]{7,40}))))?",
-                "target": "$1"
+                "pattern": "(\\d+\\.\\d+(?:\\.\\d+)?)(?:-(((alpha|beta|rc)\\.(\\d+))|(?:((?:((snapshot)(?:\\.(dev))?)\\.(\\d+))|(nightly.(\\d{4}).(\\d{2}).(\\d{2})))\\+([a-zA-Z0-9]{7,40}))))?",
+                "target": "$&"
             }
         },
         {
-            "name": "SIMPLIFIED_TITLE",
-            "source": "TITLE",
-            "transformer": {
-                "method": "regexr",
-                "pattern": "^(\\[\\d+\\.\\d+\\] )?(.*)",
-                "target": "$2"
-            }
-        },
-        {
-            "name": "COMMIT_TO_LINE",
+            "name": "COMMIT_GENERATED_LINE",
             "source": "TO_TAG",
             "transformer": {
-                "method": "replace",
-                "pattern": "([a-zA-Z0-9]{7})[a-zA-Z0-9]{33}",
+                "method": "regexr",
+                "pattern": "([a-zA-Z0-9]{7})(?:[a-zA-Z0-9]{33})?",
                 "target": "Generated from: OpenVicProject/OpenVic-Simulation@$1\n"
             }
         }
@@ -69,8 +60,9 @@
             "consume": true
         }
     ],
-    "template": "## Release Notes for OpenVic-Simulation #{{RELEASE_VERSION}}\n#{{COMMIT_SRC_LINE}}### What's New\n#{{CHANGELOG}}\n**Full Changelog**: #{{RELEASE_DIFF}}",
-    "pr_template": "* #{{SIMPLIFIED_TITLE}} by @#{{AUTHOR}} in #{{URL}}",
+    "template": "## Release Notes for OpenVic-Simulation #{{RELEASE_VERSION}}\n#{{COMMIT_GENERATED_LINE}}### Changelog since [#{{SINCE_VERSION}}](https://github.com/username/repo/releases/tag/#{{SINCE_VERSION}})\n#{{CHANGELOG}}\n**Full Changelog**: #{{RELEASE_DIFF}}",
+    "empty_template": "## Release Notes for OpenVic-Simulation #{{RELEASE_VERSION}}\n#{{COMMIT_GENERATED_LINE}}### No Pull Requests since [#{{SINCE_VERSION}}](https://github.com/username/repo/releases/tag/#{{SINCE_VERSION}})\n\n**Full Changelog**: #{{RELEASE_DIFF}}",
+    "pr_template": "* #{{TITLE}} by @#{{AUTHOR}} in #{{URL}}",
     "max_pull_requests": 1000,
     "max_back_track_time_days": 365
 }

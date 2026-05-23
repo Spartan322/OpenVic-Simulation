@@ -33,6 +33,11 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Remove refs/tags from to-ref
+      if: contains(inputs.to-ref, 'refs/tags')
+      shell: bash
+      run: echo "TO_TAG=$(T='${{ inputs.to-ref }}'; T=${T#"refs/tags/"}; echo $T)" >> $GITHUB_ENV
+
     - name: Build Release Notes
       if: inputs.snapshot-release == 'false' && inputs.nightly-release == 'false'
       uses: mikepenz/release-changelog-builder-action@348e88fab4c37338b1e803ceb2d4a7a5db6c0833 # v6.2.2
@@ -40,7 +45,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.token }}
       with:
         configuration: ".github/actions/openvic-sim-release/release-notes-configuration.json"
-        toTag: ${{ inputs.to-ref }}
+        toTag: ${{ contains(inputs.to-ref, 'refs/tags') && env.TO_TAG || inputs.to-ref }}
         fromTag: ${{ inputs.from-ref }}
         outputFile: release-notes.md
 
@@ -51,7 +56,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.token }}
       with:
         configuration: ".github/actions/openvic-sim-release/snapshot-release-notes-configuration.json"
-        toTag: ${{ inputs.to-ref }}
+        toTag: ${{ contains(inputs.to-ref, 'refs/tags') && env.TO_TAG || inputs.to-ref }}
         fromTag: ${{ inputs.from-ref }}
         outputFile: release-notes.md
 
@@ -62,7 +67,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.token }}
       with:
         configuration: ".github/actions/openvic-sim-release/nightly-release-notes-configuration.json"
-        toTag: ${{ inputs.to-ref }}
+        toTag: ${{ contains(inputs.to-ref, 'refs/tags') && env.TO_TAG || inputs.to-ref }}
         fromTag: ${{ inputs.from-ref }}
         outputFile: release-notes.md
 
@@ -93,11 +98,6 @@ runs:
         type: "zip"
         filename: libopenvic-simulation.zip
         path: library
-
-    - name: Remove refs/tags from to-ref
-      if: contains(inputs.to-ref, 'refs/tags')
-      shell: bash
-      run: echo "TO_TAG=$(T='${{ inputs.to-ref }}'; T=${T#"refs/tags/"}; echo $T)" >> $GITHUB_ENV
 
     - name: Create and upload asset
       uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
