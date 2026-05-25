@@ -143,8 +143,8 @@ jobs:
 
       - name: Get FROM_REF based on latest master/nightly
         run: |
-          LAST_MASTER_TAG=$(gh release list -L 1 --json tagName --jq '.[0]')
-          LAST_NIGHTLY_TAG=$(gh release list -L 1 -R OpenVicProject/${{ env.TARGET_REPO }} --json tagName --jq '.[0]')
+          LAST_MASTER_TAG=$(gh release list -L 1 --json tagName,createdAt --jq '.[0]')
+          LAST_NIGHTLY_TAG=$(gh release list -L 1 -R OpenVicProject/${{ env.TARGET_REPO }} --json tagName,createdAt --jq '.[0]')
 
           LAST_MASTER_TAG_CREATED_DATE=$(jq -r --args ".createdAt" $LAST_MASTER_TAG)
           LAST_NIGHTLY_TAG_CREATED_DATE=$(jq -r --args ".createdAt" $LAST_NIGHTLY_TAG)

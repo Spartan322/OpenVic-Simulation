@@ -2,6 +2,10 @@ name: Release OpenVic-Simulation
 description: Setup, Build, and Release OpenVic-Simulation
 
 inputs:
+  tag-name:
+    description: 'Name to assign to the tag (default: github.ref)'
+    default: ${{ github.ref }}
+    type: string
   target-repo:
     description: Repository to publish this release to
     default: 'OpenVic-Simulation'
@@ -89,6 +93,62 @@ runs:
         toTag: ${{ contains(inputs.to-ref, 'refs/tags') && env.TO_TAG || inputs.to-ref }}
         fromTag: ${{ inputs.from-ref }}
         outputFile: release-notes.md
+
+    - name: Create release tag and name and set release name in release-notes.md
+      if: inputs.tag-name != github.ref
+      shell: bash
+      run: |
+        LAST_MASTER_TAG=$(gh release list -L 1 --json tagName --jq '.[0]')
+
+        # Sets major, minor, patch, prerelease_type, prerelease_version, year, month, day, dev, and hash values in bash environment
+        declare $(echo "$LAST_MASTER_TAG" | awk '
+          split($0, sections, /[-+]?/) split(sections[1], version, /\./) split(sections[2], prerelease, /\./) {
+            year=""
+            month=""
+            day=""
+            prerelease_version=""
+            dev=""
+            if (prerelease[1] == "snapshot" && prerelease[2] == "dev")
+              dev="dev"
+            if (prerelease[1] == "nightly") {
+              year=prerelease[2]
+              month=prerelease[3]
+              day=prerelease[4]
+            } else {
+              prerelease_version=prerelease[2]
+            }
+          } END {
+            ver_core=version[1]"."version[2]
+            if (version[3] != "") {
+              ver_core=ver_core"."version[3]
+            }
+
+            prerelease_name=prerelease[1]
+            if (prerelease[1] == "rc") {
+              prerelease_name="Release Candidate"
+            }
+            sub(".", substr(toupper(prerelease_name), 1,1) , prerelease_name)
+            if (dev != "") {
+              prerelease_name=dev" "prerelease_name
+            }
+            sub(".", substr(toupper(prerelease_name), 1,1) , prerelease_name)
+
+            prerelease_date_or_version=prerelease_version
+            if (prerelease[1] == "nightly") {
+              prerelease_date_or_version=year"."month"."day
+            }
+
+            dotted_dev=""
+            if (dev == "dev") {
+              dotted_dev=".dev"
+            }
+
+            print "version_core="ver_core, "prerelease_type="prerelease[1] dotted_dev, "prerelease_version="prerelease_version, "prerelease_name="prerelease_name, "prerelease_date_or_version="prerelease_date_or_version, "hash="sections[3]
+          }')
+
+        echo "TO_TAG=$version_core-$prerelease_type.$prerelease_date_or_version+$hash" >> $GITHUB_ENV
+        RELEASE_NAME="$version_core $prerelease_name $prerelease_date_or_version"
+        sed -i 's/<<RELEASE_VERSION_REPLACEMENT>>/$RELEASE_NAME/g' release-notes.md
 
     - name: Process release-notes.md
       shell: bash
