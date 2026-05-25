@@ -26,13 +26,32 @@ inputs:
     description: Pre-release
     type: boolean
     required: true
-  token:
-    description: Github Token to publish to target
+  src-token:
+    description: Github token for source repository
     required: true
+  target-token:
+    description: Github token for target repository
+    required: false
+    default: ''
 
 runs:
   using: composite
   steps:
+    - name: Copy src-token to env.TARGET_TOKEN
+      if: inputs.target == 'OpenVic-Simulation'
+      shell: bash
+      run: echo "TARGET_TOKEN=${{ inputs.src-token }}" >> $GITHUB_ENV
+
+    - name: Copy target-token to env.TARGET_TOKEN
+      if: inputs.target != 'OpenVic-Simulation'
+      shell: bash
+      run: |
+        if [[ -z "${{ inputs.target-token }}" ]]; then
+          echo "::error file=.github/actions/openvic-sim-release/action.yml,line=50,endLine=50::target-repo was set to a different repository and the target-token was not set."
+          exit 1
+        fi
+        echo "TARGET_TOKEN=${{ inputs.target-token }}" >> $GITHUB_ENV
+
     - name: Remove refs/tags from to-ref
       if: contains(inputs.to-ref, 'refs/tags')
       shell: bash
@@ -42,7 +61,7 @@ runs:
       if: inputs.snapshot-release == 'false' && inputs.nightly-release == 'false'
       uses: mikepenz/release-changelog-builder-action@348e88fab4c37338b1e803ceb2d4a7a5db6c0833 # v6.2.2
       env:
-        GITHUB_TOKEN: ${{ inputs.token }}
+        GITHUB_TOKEN: ${{ inputs.src-token }}
       with:
         configuration: ".github/actions/openvic-sim-release/release-notes-configuration.json"
         toTag: ${{ contains(inputs.to-ref, 'refs/tags') && env.TO_TAG || inputs.to-ref }}
@@ -53,7 +72,7 @@ runs:
       if: inputs.snapshot-release == 'true' && inputs.nightly-release == 'false'
       uses: mikepenz/release-changelog-builder-action@348e88fab4c37338b1e803ceb2d4a7a5db6c0833 # v6.2.2
       env:
-        GITHUB_TOKEN: ${{ inputs.token }}
+        GITHUB_TOKEN: ${{ inputs.src-token }}
       with:
         configuration: ".github/actions/openvic-sim-release/snapshot-release-notes-configuration.json"
         toTag: ${{ contains(inputs.to-ref, 'refs/tags') && env.TO_TAG || inputs.to-ref }}
@@ -64,7 +83,7 @@ runs:
       if: inputs.nightly-release == 'true' && inputs.snapshot-release == 'false'
       uses: mikepenz/release-changelog-builder-action@348e88fab4c37338b1e803ceb2d4a7a5db6c0833 # v6.2.2
       env:
-        GITHUB_TOKEN: ${{ inputs.token }}
+        GITHUB_TOKEN: ${{ inputs.src-token }}
       with:
         configuration: ".github/actions/openvic-sim-release/nightly-release-notes-configuration.json"
         toTag: ${{ contains(inputs.to-ref, 'refs/tags') && env.TO_TAG || inputs.to-ref }}
@@ -126,4 +145,4 @@ runs:
         prerelease: ${{ inputs.prerelease }}
         draft: ${{ inputs.snapshot-release == 'false' && inputs.nightly-release == 'false' }}
         repo: ${{ inputs.target }}
-        token: ${{ inputs.token }}
+        token: ${{ env.TARGET_TOKEN }}

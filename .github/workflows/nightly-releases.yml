@@ -141,10 +141,39 @@ jobs:
         with:
           fetch-depth: 1 # See: https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/
 
+      - name: Get FROM_REF based on latest master/nightly
+        run: |
+          LAST_MASTER_TAG=$(gh release list -L 1 --json tagName --jq '.[0]')
+          LAST_NIGHTLY_TAG=$(gh release list -L 1 -R OpenVicProject/${{ env.TARGET_REPO }} --json tagName --jq '.[0]')
+
+          LAST_MASTER_TAG_CREATED_DATE=$(jq -r --args ".createdAt" $LAST_MASTER_TAG)
+          LAST_NIGHTLY_TAG_CREATED_DATE=$(jq -r --args ".createdAt" $LAST_NIGHTLY_TAG)
+
+          LAST_MASTER_TAG_CREATED_SEC=$(date -d $LAST_MASTER_TAG_CREATED_DATE +%s)
+          LAST_NIGHTLY_TAG_CREATED_SEC=$(date -d $LAST_NIGHTLY_TAG_CREATED_DATE +%s)
+
+          if [ $LAST_MASTER_TAG_CREATED_SEC -gt $LAST_NIGHTLY_TAG_CREATED_SEC ]; then
+            echo "FROM_REF=$(jq -r --args ".tagName" $LAST_MASTER_TAG)" >> $GITHUB_ENV
+          else
+            TAG_TO_FIND=$(jq -r --args ".tagName" $LAST_NIGHTLY_TAG)
+            SHORT_HASH_OF_TAG=$(echo $TAG_TO_FIND | awk -F "[@]+" '/Generated from: OpenVicProject\\/OpenVic-Simulation@[a-zA-Z0-9]+/{print $2}')
+            COMMIT_HASH=$(git rev-parse --verify -q $SHORT_HASH_OF_TAG)
+
+            if [ -z "$COMMIT_HASH" ]; then
+              echo "::error file=.github/workflows/nightly-releases.yml,line=163,endLine=163::Could not find commit for short hash $SHORT_HASH_OF_TAG."
+              exit 1
+            fi
+
+            echo "FROM_REF=$COMMIT_HASH" >> $GITHUB_ENV
+          fi
+
       - name: Publish Nightly Release
         uses: ./.github/actions/openvic-sim-release
         with:
-          prerelease: true
+          latest: true
+          nightly-release: true
+          from-ref: ${{ env.FROM_REF }}
           target-repo: ${{ github.env.TARGET_REPO }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          src-token: ${{ secrets.GITHUB_TOKEN }}
+          target-token: ${{ secrets.GITHUB_TOKEN }}
 

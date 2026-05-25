@@ -90,22 +90,26 @@ jobs:
         with:
           fetch-depth: 1 # See: https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/
 
-      - name: Get from-ref
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run:
-          echo "FROM_REF=$(gh release list --json tagName --jq '[.[] ${{ contains(github.ref, '-snapshot') && '' || '| select(.tagName | contains("-snapshot") | not)' }}.tagName][0]')" >> $GITHUB_ENV
-
-      - name: Publish Release
-        uses: ./.github/actions/openvic-sim-release
-        with:
-          prerelease: |-
-            ${{
+      - name: Set IS_PRERELEASE and IS_SNAPSHOT
+        run: |-
+            echo "IS_PRERELEASE=${{
               contains(github.ref, '-alpha') ||
               contains(github.ref, '-beta') ||
               contains(github.ref, '-rc') ||
               contains(github.ref, '-snapshot')
-            }}
-          snapshot-release: ${{ contains(github.ref, '-snapshot') }}
+            }}" >> $GITHUB_ENV
+            echo "IS_SNAPSHOT=${{ contains(github.ref, '-snapshot') }} >> $GITHUB_ENV"
+
+      - name: Get FROM_REF
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run:
+          echo "FROM_REF=$(gh release list ${{ env.IS_PRERELEASE && '--exclude-pre-releases' || '' }} --json tagName --jq '[.[] ${{ env.IS_SNAPSHOT && '' || '| select(.tagName | contains("-snapshot") | not)' }}.tagName][0]')" >> $GITHUB_ENV
+
+      - name: Publish Release
+        uses: ./.github/actions/openvic-sim-release
+        with:
+          prerelease: ${{ env.IS_PRERELEASE }}
+          snapshot-release: ${{ env.IS_SNAPSHOT }}
           from-ref: ${{ env.FROM_REF || 'ddfb34bf33f59aa52cac3f22ab60c824484cae53' }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          src-token: ${{ secrets.GITHUB_TOKEN }}

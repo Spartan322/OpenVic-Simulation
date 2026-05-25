@@ -2,17 +2,6 @@
     "base_branches": [
         "master"
     ],
-    "tag_resolver": {
-        "filter": {
-            "method": "regexr",
-            "pattern": "(\\d+\\.\\d+(?:\\.\\d+)?)(?:-(((alpha|beta|rc)\\.(\\d+))|(?:((?:((snapshot)(?:\\.(dev))?)\\.(\\d+))|nightly)\\+([a-zA-Z0-9]{7,40}))))?"
-        },
-        "transformer": {
-            "method": "regexr",
-            "pattern": "redot-(\\d+\\.\\d+(?:\\.\\d+)?-(?:(alpha|beta|rc)\\.(\\d+)|(stable)))",
-            "target": "$1"
-        }
-    },
     "custom_placeholders": [
         {
             "name": "RELEASE_VERSION",
@@ -37,7 +26,7 @@
             "source": "TO_TAG",
             "transformer": {
                 "method": "regexr",
-                "pattern": "([a-zA-Z0-9]{7})(?:[a-zA-Z0-9]{33})?",
+                "pattern": "([a-zA-Z0-9]{40})",
                 "target": "Generated from: OpenVicProject/OpenVic-Simulation@$1\n"
             }
         }
