@@ -98,13 +98,13 @@ jobs:
               contains(github.ref, '-rc') ||
               contains(github.ref, '-snapshot')
             }}" >> $GITHUB_ENV
-            echo "IS_SNAPSHOT=${{ contains(github.ref, '-snapshot') }} >> $GITHUB_ENV"
+            echo "IS_SNAPSHOT=${{ contains(github.ref, '-snapshot') }}"" >> $GITHUB_ENV
 
       - name: Get FROM_REF
         env:
           GH_TOKEN: ${{ github.token }}
         run:
-          echo "FROM_REF=$(gh release list ${{ env.IS_PRERELEASE && '--exclude-pre-releases' || '' }} --json tagName --jq '[.[] ${{ env.IS_SNAPSHOT && '' || '| select(.tagName | contains("-snapshot") | not)' }}.tagName][0]')" >> $GITHUB_ENV
+          echo "FROM_REF=$(gh release list ${{ env.IS_PRERELEASE && '' || '--exclude-pre-releases' }} --json tagName --jq '[.[] ${{ env.IS_SNAPSHOT && '' || '| select(.tagName | contains("-snapshot") | not)' }}.tagName][0]')" >> $GITHUB_ENV
 
       - name: Publish Release
         uses: ./.github/actions/openvic-sim-release
