@@ -56,10 +56,20 @@ runs:
         fi
         echo "TARGET_TOKEN=${{ inputs.target-token }}" >> $GITHUB_ENV
 
-    - name: Remove refs/tags from to-ref
-      if: contains(inputs.to-ref, 'refs/tags')
+    - name: Set TO_TAG from to-ref
+      if: inputs.tag-name == github.ref && !contains(inputs.to-ref, 'refs/tags')
+      shell: bash
+      run: echo "TO_TAG=${{ inputs.to-ref }}" >> $GITHUB_ENV
+
+    - name: Remove refs/tags from to-ref and set as TO_TAG
+      if: inputs.tag-name == github.ref && contains(inputs.to-ref, 'refs/tags')
       shell: bash
       run: echo "TO_TAG=$(T='${{ inputs.to-ref }}'; T=${T#"refs/tags/"}; echo $T)" >> $GITHUB_ENV
+
+    - name: Set TO_TAG from tag-name
+      if: inputs.tag-name != github.ref
+      shell: bash
+      run: echo "TO_TAG=${{ inputs.tag-name }}" >> $GITHUB_ENV
 
     - name: Build Release Notes
       if: inputs.snapshot-release == 'false' && inputs.nightly-release == 'false'
@@ -68,7 +78,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.src-token }}
       with:
         configuration: ".github/actions/openvic-sim-release/release-notes-configuration.json"
-        toTag: ${{ contains(inputs.to-ref, 'refs/tags') && env.TO_TAG || inputs.to-ref }}
+        toTag: ${{ contains(inputs.to-ref, 'refs/tags') && inputs.tag-name == github.ref && env.TO_TAG || inputs.to-ref }}
         fromTag: ${{ inputs.from-ref }}
         outputFile: release-notes.md
 
@@ -79,7 +89,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.src-token }}
       with:
         configuration: ".github/actions/openvic-sim-release/snapshot-release-notes-configuration.json"
-        toTag: ${{ contains(inputs.to-ref, 'refs/tags') && env.TO_TAG || inputs.to-ref }}
+        toTag: ${{ contains(inputs.to-ref, 'refs/tags') && inputs.tag-name == github.ref && env.TO_TAG || inputs.to-ref }}
         fromTag: ${{ inputs.from-ref }}
         outputFile: release-notes.md
 
@@ -90,7 +100,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.src-token }}
       with:
         configuration: ".github/actions/openvic-sim-release/nightly-release-notes-configuration.json"
-        toTag: ${{ contains(inputs.to-ref, 'refs/tags') && env.TO_TAG || inputs.to-ref }}
+        toTag: ${{ contains(inputs.to-ref, 'refs/tags') && inputs.tag-name == github.ref && env.TO_TAG || inputs.to-ref }}
         fromTag: ${{ inputs.from-ref }}
         outputFile: release-notes.md
 
@@ -98,10 +108,8 @@ runs:
       if: inputs.tag-name != github.ref
       shell: bash
       run: |
-        LAST_MASTER_TAG=$(gh release list -L 1 --json tagName --jq '.[0]')
-
         # Sets major, minor, patch, prerelease_type, prerelease_version, year, month, day, dev, and hash values in bash environment
-        declare $(echo "$LAST_MASTER_TAG" | awk '
+        declare $(echo "${{ inputs.tag-name }}" | awk '
           split($0, sections, /[-+]?/) split(sections[1], version, /\./) split(sections[2], prerelease, /\./) {
             year=""
             month=""
@@ -118,9 +126,9 @@ runs:
               prerelease_version=prerelease[2]
             }
           } END {
-            ver_core=version[1]"."version[2]
+            version_core=version[1]"."version[2]
             if (version[3] != "") {
-              ver_core=ver_core"."version[3]
+              version_core=version_core"."version[3]
             }
 
             prerelease_name=prerelease[1]
@@ -143,12 +151,11 @@ runs:
               dotted_dev=".dev"
             }
 
-            print "version_core="ver_core, "prerelease_type="prerelease[1] dotted_dev, "prerelease_version="prerelease_version, "prerelease_name="prerelease_name, "prerelease_date_or_version="prerelease_date_or_version, "hash="sections[3]
+            print "version_core="version_core, "prerelease_type="prerelease[1] dotted_dev, "prerelease_version="prerelease_version, "prerelease_name="prerelease_name, "prerelease_date_or_version="prerelease_date_or_version, "hash="sections[3]
           }')
 
-        echo "TO_TAG=$version_core-$prerelease_type.$prerelease_date_or_version+$hash" >> $GITHUB_ENV
-        RELEASE_NAME="$version_core $prerelease_name $prerelease_date_or_version"
-        sed -i 's/<<RELEASE_VERSION_REPLACEMENT>>/$RELEASE_NAME/g' release-notes.md
+        # Keep up to date with .github/actions/openvic-sim-release/nightly-release-notes-configuration.json
+        sed -i 's/<<RELEASE_NAME_REPLACEMENT>>/$version_core $prerelease_name $prerelease_date_or_version/g' release-notes.md
 
     - name: Process release-notes.md
       shell: bash
@@ -199,8 +206,8 @@ runs:
         omitNameDuringUpdate: true
         omitBodyDuringUpdate: true
         name: ${{ env.RELEASE_NAME || '' }}
-        tag: ${{ contains(inputs.to-ref, 'refs/tags') && env.TO_TAG || '' }}
-        commit: ${{ !contains(inputs.to-ref, 'refs/tags') && inputs.to-ref || '' }}
+        tag: ${{ env.TO_TAG || '' }}
+        commit: ${{ inputs.to-ref || '' }}
         bodyFile: release-notes.md
         prerelease: ${{ inputs.prerelease }}
         draft: ${{ inputs.snapshot-release == 'false' && inputs.nightly-release == 'false' }}

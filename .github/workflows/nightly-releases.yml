@@ -141,37 +141,61 @@ jobs:
         with:
           fetch-depth: 1 # See: https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/
 
-      - name: Get FROM_REF based on latest master/nightly
+      - name: Get FROM_REF and TAG_NAME based on latest master/nightly
         run: |
-          LAST_MASTER_TAG=$(gh release list -L 1 --json tagName,createdAt --jq '.[0]')
-          LAST_NIGHTLY_TAG=$(gh release list -L 1 -R OpenVicProject/${{ env.TARGET_REPO }} --json tagName,createdAt --jq '.[0]')
+          LAST_MASTER_TAG_INFO=$(gh release list -L 1 --json tagName,createdAt --jq '.[0]')
+          LAST_NIGHTLY_TAG_INFO=$(gh release list -L 1 -R OpenVicProject/${{ env.TARGET_REPO }} --json tagName,createdAt --jq '.[0]')
 
-          LAST_MASTER_TAG_CREATED_DATE=$(jq -r --args ".createdAt" $LAST_MASTER_TAG)
-          LAST_NIGHTLY_TAG_CREATED_DATE=$(jq -r --args ".createdAt" $LAST_NIGHTLY_TAG)
+          LAST_MASTER_TAG_CREATED_DATE=$(jq -r --args ".createdAt" $LAST_MASTER_TAG_INFO)
+          LAST_NIGHTLY_TAG_CREATED_DATE=$(jq -r --args ".createdAt" $LAST_NIGHTLY_TAG_INFO)
 
           LAST_MASTER_TAG_CREATED_SEC=$(date -d $LAST_MASTER_TAG_CREATED_DATE +%s)
           LAST_NIGHTLY_TAG_CREATED_SEC=$(date -d $LAST_NIGHTLY_TAG_CREATED_DATE +%s)
 
+          LATEST_TAG=""
+          COMMIT_HASH=""
           if [ $LAST_MASTER_TAG_CREATED_SEC -gt $LAST_NIGHTLY_TAG_CREATED_SEC ]; then
-            echo "FROM_REF=$(jq -r --args ".tagName" $LAST_MASTER_TAG)" >> $GITHUB_ENV
+            LATEST_TAG=$(jq -r --args ".tagName" $LAST_MASTER_TAG_INFO)
+            COMMIT_HASH=$(git rev-parse --verify -q $LATEST_TAG)
+            echo "FROM_REF=$LATEST_TAG" >> $GITHUB_ENV
           else
-            TAG_TO_FIND=$(jq -r --args ".tagName" $LAST_NIGHTLY_TAG)
-            SHORT_HASH_OF_TAG=$(echo $TAG_TO_FIND | awk -F "[@]+" '/Generated from: OpenVicProject\\/OpenVic-Simulation@[a-zA-Z0-9]+/{print $2}')
-            COMMIT_HASH=$(git rev-parse --verify -q $SHORT_HASH_OF_TAG)
+            LATEST_TAG=$(jq -r --args ".tagName" $LAST_NIGHTLY_TAG_INFO)
+
+            # Keep up to date with .github/actions/openvic-sim-release/nightly-release-notes-configuration.json
+            HASH_OF_TAG=$(echo $LATEST_TAG | awk -F "[@]+" '/Generated from: OpenVicProject\\/OpenVic-Simulation@[a-zA-Z0-9]+/{print $2}')
+
+            COMMIT_HASH=$(git rev-parse --verify -q $HASH_OF_TAG)
 
             if [ -z "$COMMIT_HASH" ]; then
-              echo "::error file=.github/workflows/nightly-releases.yml,line=163,endLine=163::Could not find commit for short hash $SHORT_HASH_OF_TAG."
+              echo "::error file=.github/workflows/nightly-releases.yml,line=163,endLine=163::Could not find commit for hash $HASH_OF_TAG."
               exit 1
             fi
 
             echo "FROM_REF=$COMMIT_HASH" >> $GITHUB_ENV
           fi
 
+          declare $(echo "$LATEST_TAG" | awk '
+            split($0, sections, /[-+]?/) split(sections[1], version, /\./) split(sections[2], prerelease, /\./) {
+              prerelease_version=prerelease[2]
+            } END {
+              version_major=int(version[1])
+              version_minor=int(version[2])
+              if (prerelease[1] == "") {
+                version_minor=version_minor+1
+              }
+
+              version_core=version_major"."version_minor
+              print "VERSION_CORE="version_core
+            }
+          ')
+          echo "TAG_NAME=$VERSION_CORE.$(date +%Y.%m.%d)+$COMMIT_HASH" >> $GITHUB_ENV
+
       - name: Publish Nightly Release
         uses: ./.github/actions/openvic-sim-release
         with:
           latest: true
           nightly-release: true
+          tag-name: ${{ env.TAG_NAME }}
           from-ref: ${{ env.FROM_REF }}
           target-repo: ${{ github.env.TARGET_REPO }}
           src-token: ${{ secrets.GITHUB_TOKEN }}
