@@ -98,7 +98,7 @@ jobs:
               contains(github.ref, '-rc') ||
               contains(github.ref, '-snapshot')
             }}" >> $GITHUB_ENV
-            echo "IS_SNAPSHOT=${{ contains(github.ref, '-snapshot') }}"" >> $GITHUB_ENV
+            echo "IS_SNAPSHOT=${{ contains(github.ref, '-snapshot') }}" >> $GITHUB_ENV
 
       - name: Get FROM_REF
         env:
