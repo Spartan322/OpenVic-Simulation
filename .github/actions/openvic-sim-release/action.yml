@@ -42,12 +42,12 @@ runs:
   using: composite
   steps:
     - name: Copy src-token to env.TARGET_TOKEN
-      if: inputs.target == 'OpenVic-Simulation'
+      if: inputs.target-repo == 'OpenVic-Simulation'
       shell: bash
       run: echo "TARGET_TOKEN=${{ inputs.src-token }}" >> $GITHUB_ENV
 
     - name: Copy target-token to env.TARGET_TOKEN
-      if: inputs.target != 'OpenVic-Simulation'
+      if: inputs.target-repo != 'OpenVic-Simulation'
       shell: bash
       run: |
         if [[ -z "${{ inputs.target-token }}" ]]; then
@@ -204,5 +204,5 @@ runs:
         bodyFile: release-notes.md
         prerelease: ${{ inputs.prerelease }}
         draft: ${{ inputs.snapshot-release == 'false' && inputs.nightly-release == 'false' }}
-        repo: ${{ inputs.target }}
+        repo: ${{ inputs.target-repo }}
         token: ${{ env.TARGET_TOKEN }}
