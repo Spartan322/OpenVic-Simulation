@@ -62,7 +62,7 @@ runs:
       run: echo "TO_TAG=$(T='${{ inputs.to-ref }}'; T=${T#"refs/tags/"}; echo $T)" >> $GITHUB_ENV
 
     - name: Build Release Notes
-      if: inputs.snapshot-release == 'false' && inputs.nightly-release == 'false'
+      if: inputs.snapshot-release == 'false' && inputs.nightly-release == false
       uses: mikepenz/release-changelog-builder-action@348e88fab4c37338b1e803ceb2d4a7a5db6c0833 # v6.2.2
       env:
         GITHUB_TOKEN: ${{ inputs.src-token }}
@@ -73,7 +73,7 @@ runs:
         outputFile: release-notes.md
 
     - name: Build Snapshot Release Notes
-      if: inputs.snapshot-release == 'true' && inputs.nightly-release == 'false'
+      if: inputs.snapshot-release == 'true' && inputs.nightly-release == false
       uses: mikepenz/release-changelog-builder-action@348e88fab4c37338b1e803ceb2d4a7a5db6c0833 # v6.2.2
       env:
         GITHUB_TOKEN: ${{ inputs.src-token }}
@@ -84,7 +84,7 @@ runs:
         outputFile: release-notes.md
 
     - name: Build Nightly Release Notes
-      if: inputs.nightly-release == 'true' && inputs.snapshot-release == 'false'
+      if: inputs.nightly-release == 'true' && inputs.snapshot-release == false
       uses: mikepenz/release-changelog-builder-action@348e88fab4c37338b1e803ceb2d4a7a5db6c0833 # v6.2.2
       env:
         GITHUB_TOKEN: ${{ inputs.src-token }}
