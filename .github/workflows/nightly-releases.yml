@@ -142,16 +142,22 @@ jobs:
           fetch-depth: 1 # See: https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/
 
       - name: Retrieve master/nightly release tag info
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           echo "LAST_MASTER_TAG_INFO=$(gh release list -L 1 --json tagName,createdAt --jq '.[0]')" >> $GITHUB_ENV
           echo "LAST_NIGHTLY_TAG_INFO=$(gh release list -L 1 -R OpenVicProject/${{ env.TARGET_REPO }} --json tagName,createdAt --jq '.[0]')" >> $GITHUB_ENV
 
       - name: Query master/nightly release tag info for dates
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           echo "LAST_MASTER_TAG_CREATED_DATE=$(echo "$LAST_MASTER_TAG_INFO" | jq -r ".createdAt" )" >> $GITHUB_ENV
           echo "LAST_NIGHTLY_TAG_CREATED_DATE=$(echo "$LAST_NIGHTLY_TAG_INFO" | jq -r ".createdAt" )" >> $GITHUB_ENV
 
       - name: Process master/nightly release tag dates
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           echo "LAST_MASTER_TAG_CREATED_SEC=$(date -d $LAST_MASTER_TAG_CREATED_DATE +%s)" >> $GITHUB_ENV
 
@@ -174,7 +180,7 @@ jobs:
           else
             LATEST_TAG=$(echo "$LAST_NIGHTLY_TAG_INFO" | jq -r ".tagName" )
 
-            LATEST_RELEASE_BODY=$(gh release view $LATEST_TAG -R OpenVicProject/${{ env.TARGET_REPO }} --json body --jq '.body')
+            LATEST_RELEASE_BODY=$(gh release view $LATEST_TAG -R OpenVicProject/${{ env.TARGET_REPO }} --json body --jq '.body' )
 
             # Keep up to date with .github/actions/openvic-sim-release/nightly-release-notes-configuration.json
             HASH_OF_TAG=$(echo "$LATEST_RELEASE_BODY" | awk -F "[@]+" '/Generated from: OpenVicProject\\/OpenVic-Simulation@[a-zA-Z0-9]+/{print $2}')
