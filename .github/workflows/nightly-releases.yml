@@ -55,7 +55,7 @@ jobs:
             "pyproject.toml"
             "SConstruct"
             ".github/workflows/builds.yml"
-            ".github/workflows/nightly-builds.yml"
+            ".github/workflows/nightly-releases.yml"
           )
           if [[ -f .nightly_commit_hash ]]; then
             limit_args=(
