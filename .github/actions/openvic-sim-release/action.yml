@@ -50,7 +50,7 @@ runs:
       if: inputs.target-repo != 'OpenVic-Simulation'
       shell: bash
       run: |
-        if [[ -z "${{ inputs.target-token }}" ]]; then
+        if [[ -z ${{ inputs.target-token }} ]]; then
           echo "::error file=.github/actions/openvic-sim-release/action.yml,line=50,endLine=50::target-repo was set to a different repository and the target-token was not set."
           exit 1
         fi
