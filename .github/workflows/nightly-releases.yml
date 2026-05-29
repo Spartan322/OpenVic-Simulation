@@ -142,27 +142,35 @@ jobs:
           fetch-depth: 1 # See: https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/
 
       - name: Get FROM_REF and TAG_NAME based on latest master/nightly
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           LAST_MASTER_TAG_INFO=$(gh release list -L 1 --json tagName,createdAt --jq '.[0]')
           LAST_NIGHTLY_TAG_INFO=$(gh release list -L 1 -R OpenVicProject/${{ env.TARGET_REPO }} --json tagName,createdAt --jq '.[0]')
 
-          LAST_MASTER_TAG_CREATED_DATE=$(jq -r --args ".createdAt" $LAST_MASTER_TAG_INFO)
-          LAST_NIGHTLY_TAG_CREATED_DATE=$(jq -r --args ".createdAt" $LAST_NIGHTLY_TAG_INFO)
+          LAST_MASTER_TAG_CREATED_DATE=$(echo "$LAST_MASTER_TAG_INFO" | jq -r ".createdAt" )
+          LAST_NIGHTLY_TAG_CREATED_DATE=$(echo "$LAST_NIGHTLY_TAG_INFO" | jq -r ".createdAt" )
 
           LAST_MASTER_TAG_CREATED_SEC=$(date -d $LAST_MASTER_TAG_CREATED_DATE +%s)
-          LAST_NIGHTLY_TAG_CREATED_SEC=$(date -d $LAST_NIGHTLY_TAG_CREATED_DATE +%s)
+
+          LAST_NIGHTLY_TAG_CREATED_SEC=0
+          if [ -n $LAST_NIGHTLY_TAG_CREATED_DATE ]; then
+            LAST_NIGHTLY_TAG_CREATED_SEC=$(date -d $LAST_NIGHTLY_TAG_CREATED_DATE +%s)
+          fi
 
           LATEST_TAG=""
           COMMIT_HASH=""
           if [ $LAST_MASTER_TAG_CREATED_SEC -gt $LAST_NIGHTLY_TAG_CREATED_SEC ]; then
-            LATEST_TAG=$(jq -r --args ".tagName" $LAST_MASTER_TAG_INFO)
+            LATEST_TAG=$(echo "$LAST_MASTER_TAG_INFO" | jq -r ".tagName" )
             COMMIT_HASH=$(git rev-parse --verify -q $LATEST_TAG)
             echo "FROM_REF=$LATEST_TAG" >> $GITHUB_ENV
           else
-            LATEST_TAG=$(jq -r --args ".tagName" $LAST_NIGHTLY_TAG_INFO)
+            LATEST_TAG=$(echo "$LAST_NIGHTLY_TAG_INFO" | jq -r ".tagName" )
+
+            LATEST_RELEASE_BODY=$(gh release view $LATEST_TAG -R OpenVicProject/${{ env.TARGET_REPO }} --json body --jd '.body')
 
             # Keep up to date with .github/actions/openvic-sim-release/nightly-release-notes-configuration.json
-            HASH_OF_TAG=$(echo $LATEST_TAG | awk -F "[@]+" '/Generated from: OpenVicProject\\/OpenVic-Simulation@[a-zA-Z0-9]+/{print $2}')
+            HASH_OF_TAG=$(echo "$LATEST_RELEASE_BODY" | awk -F "[@]+" '/Generated from: OpenVicProject\\/OpenVic-Simulation@[a-zA-Z0-9]+/{print $2}')
 
             COMMIT_HASH=$(git rev-parse --verify -q $HASH_OF_TAG)
 
