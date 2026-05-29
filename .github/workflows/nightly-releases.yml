@@ -174,7 +174,7 @@ jobs:
           else
             LATEST_TAG=$(echo "$LAST_NIGHTLY_TAG_INFO" | jq -r ".tagName" )
 
-            LATEST_RELEASE_BODY=$(gh release view $LATEST_TAG -R OpenVicProject/${{ env.TARGET_REPO }} --json body --jd '.body')
+            LATEST_RELEASE_BODY=$(gh release view $LATEST_TAG -R OpenVicProject/${{ env.TARGET_REPO }} --json body --jq '.body')
 
             # Keep up to date with .github/actions/openvic-sim-release/nightly-release-notes-configuration.json
             HASH_OF_TAG=$(echo "$LATEST_RELEASE_BODY" | awk -F "[@]+" '/Generated from: OpenVicProject\\/OpenVic-Simulation@[a-zA-Z0-9]+/{print $2}')
