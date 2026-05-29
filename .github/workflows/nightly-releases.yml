@@ -152,8 +152,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "LAST_MASTER_TAG_CREATED_DATE=$(echo "$LAST_MASTER_TAG_INFO" | jq -r ".createdAt" )" >> $GITHUB_ENV
-          echo "LAST_NIGHTLY_TAG_CREATED_DATE=$(echo "$LAST_NIGHTLY_TAG_INFO" | jq -r ".createdAt" )" >> $GITHUB_ENV
+          echo "LAST_MASTER_TAG_CREATED_DATE=$(echo '$LAST_MASTER_TAG_INFO' | jq -r ".createdAt" )" >> $GITHUB_ENV
+          echo "LAST_NIGHTLY_TAG_CREATED_DATE=$(echo '$LAST_NIGHTLY_TAG_INFO' | jq -r ".createdAt" )" >> $GITHUB_ENV
 
       - name: Process master/nightly release tag dates
         env:
@@ -174,11 +174,11 @@ jobs:
           LATEST_TAG=""
           COMMIT_HASH=""
           if [ $LAST_MASTER_TAG_CREATED_SEC -gt $LAST_NIGHTLY_TAG_CREATED_SEC ]; then
-            LATEST_TAG=$(echo "$LAST_MASTER_TAG_INFO" | jq -r ".tagName" )
+            LATEST_TAG=$(echo '$LAST_MASTER_TAG_INFO' | jq -r ".tagName" )
             COMMIT_HASH=$(git rev-parse --verify -q $LATEST_TAG)
             echo "FROM_REF=$LATEST_TAG" >> $GITHUB_ENV
           else
-            LATEST_TAG=$(echo "$LAST_NIGHTLY_TAG_INFO" | jq -r ".tagName" )
+            LATEST_TAG=$(echo '$LAST_NIGHTLY_TAG_INFO' | jq -r ".tagName" )
 
             LATEST_RELEASE_BODY=$(gh release view $LATEST_TAG -R OpenVicProject/${{ env.TARGET_REPO }} --json body --jq '.body' )
 
