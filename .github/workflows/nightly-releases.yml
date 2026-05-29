@@ -141,23 +141,30 @@ jobs:
         with:
           fetch-depth: 1 # See: https://github.blog/open-source/git/get-up-to-speed-with-partial-clone-and-shallow-clone/
 
-      - name: Get FROM_REF and TAG_NAME based on latest master/nightly
+      - name: Retrieve master/nightly release tag info
+        run: |
+          echo "LAST_MASTER_TAG_INFO=$(gh release list -L 1 --json tagName,createdAt --jq '.[0]')" >> $GITHUB_ENV
+          echo "LAST_NIGHTLY_TAG_INFO=$(gh release list -L 1 -R OpenVicProject/${{ env.TARGET_REPO }} --json tagName,createdAt --jq '.[0]')" >> $GITHUB_ENV
+
+      - name: Query master/nightly release tag info for dates
+        run: |
+          echo "LAST_MASTER_TAG_CREATED_DATE=$(echo "$LAST_MASTER_TAG_INFO" | jq -r ".createdAt" )" >> $GITHUB_ENV
+          echo "LAST_NIGHTLY_TAG_CREATED_DATE=$(echo "$LAST_NIGHTLY_TAG_INFO" | jq -r ".createdAt" )" >> $GITHUB_ENV
+
+      - name: Process master/nightly release tag dates
+        run: |
+          echo "LAST_MASTER_TAG_CREATED_SEC=$(date -d $LAST_MASTER_TAG_CREATED_DATE +%s)" >> $GITHUB_ENV
+
+          if [ ! -z $LAST_NIGHTLY_TAG_CREATED_DATE ]; then
+            echo "LAST_NIGHTLY_TAG_CREATED_SEC=$(date -d $LAST_NIGHTLY_TAG_CREATED_DATE +%s)" >> $GITHUB_ENV
+          else
+            echo "LAST_NIGHTLY_TAG_CREATED_SEC=0" >> $GITHUB_ENV
+          fi
+
+      - name: Get FROM_REF, LATEST_TAG, and COMMIT_HASH from latest release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          LAST_MASTER_TAG_INFO=$(gh release list -L 1 --json tagName,createdAt --jq '.[0]')
-          LAST_NIGHTLY_TAG_INFO=$(gh release list -L 1 -R OpenVicProject/${{ env.TARGET_REPO }} --json tagName,createdAt --jq '.[0]')
-
-          LAST_MASTER_TAG_CREATED_DATE=$(echo "$LAST_MASTER_TAG_INFO" | jq -r ".createdAt" )
-          LAST_NIGHTLY_TAG_CREATED_DATE=$(echo "$LAST_NIGHTLY_TAG_INFO" | jq -r ".createdAt" )
-
-          LAST_MASTER_TAG_CREATED_SEC=$(date -d $LAST_MASTER_TAG_CREATED_DATE +%s)
-
-          LAST_NIGHTLY_TAG_CREATED_SEC=0
-          if [ ! -z $LAST_NIGHTLY_TAG_CREATED_DATE ]; then
-            LAST_NIGHTLY_TAG_CREATED_SEC=$(date -d $LAST_NIGHTLY_TAG_CREATED_DATE +%s)
-          fi
-
           LATEST_TAG=""
           COMMIT_HASH=""
           if [ $LAST_MASTER_TAG_CREATED_SEC -gt $LAST_NIGHTLY_TAG_CREATED_SEC ]; then
@@ -182,6 +189,11 @@ jobs:
             echo "FROM_REF=$COMMIT_HASH" >> $GITHUB_ENV
           fi
 
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          echo "COMMIT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
+
+      - name: Process release into TAG_NAME
+        run: |
           declare $(echo "$LATEST_TAG" | awk '
             split($0, sections, /[-+]?/) split(sections[1], version, /\./) split(sections[2], prerelease, /\./) {
               prerelease_version=prerelease[2]
