@@ -75,7 +75,7 @@ jobs:
         run: echo "${HEAD}" | tee .nightly_commit_hash
 
   nightly-build:
-    name: Build Release
+    name: Build ${{ matrix.name }}
     needs: nightly-check
     if: needs.nightly-check.outputs.commit
     runs-on: ${{ matrix.os }}
@@ -86,13 +86,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - identifier: windows-release
-            os: windows-latest
-            name: 🏁 Windows Release
-            target: template_release
-            platform: windows
-            arch: x86_64
-            scons-flags: ''
+          # - identifier: windows-release
+          #   os: windows-latest
+          #   name: 🏁 Windows Release
+          #   target: template_release
+          #   platform: windows
+          #   arch: x86_64
+          #   scons-flags: ''
 
           - identifier: macos-release
             os: macos-latest
