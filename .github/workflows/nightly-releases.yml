@@ -154,7 +154,7 @@ jobs:
           LAST_MASTER_TAG_CREATED_SEC=$(date -d $LAST_MASTER_TAG_CREATED_DATE +%s)
 
           LAST_NIGHTLY_TAG_CREATED_SEC=0
-          if [ -n $LAST_NIGHTLY_TAG_CREATED_DATE ]; then
+          if [ ! -z $LAST_NIGHTLY_TAG_CREATED_DATE ]; then
             LAST_NIGHTLY_TAG_CREATED_SEC=$(date -d $LAST_NIGHTLY_TAG_CREATED_DATE +%s)
           fi
 
