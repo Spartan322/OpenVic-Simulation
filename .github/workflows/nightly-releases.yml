@@ -175,17 +175,23 @@ jobs:
           COMMIT_HASH=""
           if [[ $LAST_MASTER_TAG_CREATED_SEC -gt $LAST_NIGHTLY_TAG_CREATED_SEC ]]; then
             LATEST_TAG=$(jq -r '.tagName' <<< "$LAST_MASTER_TAG_INFO")
+            echo "::debug::LATEST_TAG=$LATEST_TAG"
             COMMIT_HASH=$(git rev-parse --verify -q $LATEST_TAG)
+            echo "::debug::COMMIT_HASH=$COMMIT_HASH"
             echo "FROM_REF=$LATEST_TAG" >> $GITHUB_ENV
           else
             LATEST_TAG=$(jq -r '.tagName' <<< "$LAST_NIGHTLY_TAG_INFO")
+            echo "::debug::LATEST_TAG=$LATEST_TAG"
 
             LATEST_RELEASE_BODY=$(gh release view $LATEST_TAG -R OpenVicProject/${{ env.TARGET_REPO }} --json body --jq '.body')
+            echo "::debug::LATEST_RELEASE_BODY=$LATEST_RELEASE_BODY"
 
             # Keep up to date with .github/actions/openvic-sim-release/nightly-release-notes-configuration.json
             HASH_OF_TAG=$(grep -oP 'Generated from: OpenVicProject/OpenVic-Simulation@\K[a-zA-Z0-9]+' <<< "$LATEST_RELEASE_BODY")
+            echo "::debug::HASH_OF_TAG=$HASH_OF_TAG"
 
             COMMIT_HASH=$(git rev-parse --verify -q $HASH_OF_TAG)
+            echo "::debug::COMMIT_HASH=$COMMIT_HASH"
 
             if [[ -z $COMMIT_HASH ]]; then
               echo "::error file=.github/workflows/nightly-releases.yml,line=163,endLine=163::Could not find commit for hash $HASH_OF_TAG."
@@ -214,6 +220,8 @@ jobs:
               print "VERSION_CORE="version_core
             }
           ' <<< "$LATEST_TAG")
+          echo "::debug::VERSION_CORE=$VERSION_CORE"
+
           echo "TAG_NAME=$VERSION_CORE.$(date +%Y.%m.%d)+$COMMIT_HASH" >> $GITHUB_ENV
 
       - name: Publish Nightly Release
