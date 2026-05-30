@@ -26,6 +26,10 @@ inputs:
     description: Whether the release is a snapshot release
     type: boolean
     default: false
+  latest:
+    description: Latest
+    type: boolean
+    default: false
   prerelease:
     description: Pre-release
     type: boolean
@@ -209,6 +213,7 @@ runs:
         tag: ${{ env.TO_TAG || '' }}
         commit: ${{ !contains(inputs.to-ref, '.') && inputs.to-ref || '' }}
         bodyFile: release-notes.md
+        makeLatest: ${{ inputs.latest }}
         prerelease: ${{ inputs.prerelease }}
         draft: ${{ inputs.snapshot-release == 'false' && inputs.nightly-release == 'false' }}
         repo: ${{ inputs.target-repo }}
