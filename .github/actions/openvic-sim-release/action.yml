@@ -176,7 +176,7 @@ runs:
         # strip <<trim-right: and >>
         sed -i 's/[ ]*<<optional:\([^>]*\)*>>[ ]*/<<optional: \1 >>/g; s/<<optional:  >>/ /g; s/<<optional:\([^>]*\)*>>/\1/g' release-notes.md
 
-        echo "RELEASE_NAME=$(sed '2~1d; s/## Release Notes for \(\.*\)/\1/' release-notes.md)" >> $GITHUB_ENV
+        echo "RELEASE_NAME=$(grep -oP '^##\s*Release Notes for\s+\K.*' release-notes.md | head -n1)" >> $GITHUB_ENV
 
     - name: Make library directory
       shell: sh
@@ -209,13 +209,13 @@ runs:
         artifacts: "libopenvic-simulation.zip,openvic-simulation.headless.**"
         omitNameDuringUpdate: true
         omitBodyDuringUpdate: true
-        name: ${{ env.RELEASE_NAME || '' }}
-        tag: ${{ env.TO_TAG || '' }}
-        commit: ${{ !contains(inputs.to-ref, '.') && inputs.to-ref || '' }}
-        bodyFile: release-notes.md
+        name: "${{ env.RELEASE_NAME || '' }}"
+        tag: "${{ env.TO_TAG || '' }}"
+        commit: "${{ !contains(inputs.to-ref, '.') && inputs.to-ref || '' }}"
+        bodyFile: "release-notes.md"
         makeLatest: ${{ inputs.latest }}
         prerelease: ${{ inputs.prerelease }}
         draft: ${{ inputs.snapshot-release == 'false' && inputs.nightly-release == 'false' }}
-        repo: ${{ inputs.target-repo }}
-        owner: OpenVicProject
+        repo: "${{ inputs.target-repo }}"
+        owner: "OpenVicProject"
         token: ${{ env.TARGET_TOKEN }}
