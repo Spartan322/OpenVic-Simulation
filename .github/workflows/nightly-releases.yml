@@ -223,7 +223,7 @@ jobs:
           ' <<< "$LATEST_TAG")
           echo "::debug::VERSION_CORE=$VERSION_CORE"
 
-          echo "TAG_NAME=$VERSION_CORE.$(date +%Y.%m.%d)+$COMMIT_HASH" >> $GITHUB_ENV
+          echo "TAG_NAME=$VERSION_CORE.$(date +%Y.%m.%d)+${{ github.sha }}" >> $GITHUB_ENV
 
       - name: Publish Nightly Release
         uses: ./.github/actions/openvic-sim-release
