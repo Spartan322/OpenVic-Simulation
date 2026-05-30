@@ -146,26 +146,26 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "LAST_MASTER_TAG_INFO=$(gh release list -L 1 --json tagName,createdAt --jq '.[0]')" >> $GITHUB_ENV
-          echo "LAST_NIGHTLY_TAG_INFO=$(gh release list -L 1 -R OpenVicProject/${{ env.TARGET_REPO }} --json tagName,createdAt --jq '.[0]')" >> $GITHUB_ENV
+          echo "LAST_MASTER_TAG_INFO=$(gh release list -L 1 --json tagName,publishedAt --jq '.[0]')" >> $GITHUB_ENV
+          echo "LAST_NIGHTLY_TAG_INFO=$(gh release list -L 1 -R OpenVicProject/${{ env.TARGET_REPO }} --json tagName,publishedAt --jq '.[0]')" >> $GITHUB_ENV
 
       - name: Query master/nightly release tag info for dates
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "LAST_MASTER_TAG_CREATED_DATE=$(jq -r ".createdAt" <<< "$LAST_MASTER_TAG_INFO")" >> $GITHUB_ENV
-          echo "LAST_NIGHTLY_TAG_CREATED_DATE=$(jq -r ".createdAt" <<< "$LAST_NIGHTLY_TAG_INFO")" >> $GITHUB_ENV
+          echo "LAST_MASTER_TAG_PUB_DATE=$(jq -r ".publishedAt" <<< "$LAST_MASTER_TAG_INFO")" >> $GITHUB_ENV
+          echo "LAST_NIGHTLY_TAG_PUB_DATE=$(jq -r ".publishedAt" <<< "$LAST_NIGHTLY_TAG_INFO")" >> $GITHUB_ENV
 
       - name: Process master/nightly release tag dates
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "LAST_MASTER_TAG_CREATED_SEC=$(date -d $LAST_MASTER_TAG_CREATED_DATE +%s)" >> $GITHUB_ENV
+          echo "LAST_MASTER_TAG_PUB_SEC=$(date -d $LAST_MASTER_TAG_PUB_DATE +%s)" >> $GITHUB_ENV
 
-          if [[ ! -z $LAST_NIGHTLY_TAG_CREATED_DATE ]]; then
-            echo "LAST_NIGHTLY_TAG_CREATED_SEC=$(date -d $LAST_NIGHTLY_TAG_CREATED_DATE +%s)" >> $GITHUB_ENV
+          if [[ ! -z $LAST_NIGHTLY_TAG_PUB_DATE ]]; then
+            echo "LAST_NIGHTLY_TAG_PUB_SEC=$(date -d $LAST_NIGHTLY_TAG_PUB_DATE +%s)" >> $GITHUB_ENV
           else
-            echo "LAST_NIGHTLY_TAG_CREATED_SEC=0" >> $GITHUB_ENV
+            echo "LAST_NIGHTLY_TAG_PUB_SEC=0" >> $GITHUB_ENV
           fi
 
       - name: Get FROM_REF, LATEST_TAG, and COMMIT_HASH from latest release
@@ -174,7 +174,7 @@ jobs:
         run: |
           LATEST_TAG=""
           COMMIT_HASH=""
-          if [[ $LAST_MASTER_TAG_CREATED_SEC -gt $LAST_NIGHTLY_TAG_CREATED_SEC ]]; then
+          if [[ $LAST_MASTER_TAG_PUB_SEC -gt $LAST_NIGHTLY_TAG_PUB_SEC ]]; then
             LATEST_TAG=$(jq -r '.tagName' <<< "$LAST_MASTER_TAG_INFO")
             echo "::debug::LATEST_TAG=$LATEST_TAG"
             COMMIT_HASH=$(git rev-parse --verify -q $LATEST_TAG)
