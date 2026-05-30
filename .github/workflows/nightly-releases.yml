@@ -174,7 +174,7 @@ jobs:
           LATEST_TAG=""
           COMMIT_HASH=""
           if [[ $LAST_MASTER_TAG_CREATED_SEC -gt $LAST_NIGHTLY_TAG_CREATED_SEC ]]; then
-            LATEST_TAG=$(jq -r '.tagName' << "$LAST_MASTER_TAG_INFO")
+            LATEST_TAG=$(jq -r '.tagName' <<< "$LAST_MASTER_TAG_INFO")
             COMMIT_HASH=$(git rev-parse --verify -q $LATEST_TAG)
             echo "FROM_REF=$LATEST_TAG" >> $GITHUB_ENV
           else
