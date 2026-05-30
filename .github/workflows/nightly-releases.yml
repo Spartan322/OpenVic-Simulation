@@ -183,7 +183,7 @@ jobs:
             LATEST_RELEASE_BODY=$(gh release view $LATEST_TAG -R OpenVicProject/${{ env.TARGET_REPO }} --json body --jq '.body')
 
             # Keep up to date with .github/actions/openvic-sim-release/nightly-release-notes-configuration.json
-            HASH_OF_TAG=$(echo "$LATEST_RELEASE_BODY" | awk -F "[@]+" '/Generated from: OpenVicProject\\/OpenVic-Simulation@[a-zA-Z0-9]+/{print $2}')
+            HASH_OF_TAG=$(grep -oP 'Generated from: OpenVicProject/OpenVic-Simulation@\K[a-zA-Z0-9]+' <<< "$LATEST_RELEASE_BODY")
 
             COMMIT_HASH=$(git rev-parse --verify -q $HASH_OF_TAG)
 
@@ -200,7 +200,7 @@ jobs:
 
       - name: Process release into TAG_NAME
         run: |
-          declare $(echo "$LATEST_TAG" | awk '
+          declare $(awk '
             split($0, sections, /[-+]?/) split(sections[1], version, /\./) split(sections[2], prerelease, /\./) {
               prerelease_version=prerelease[2]
             } END {
@@ -213,7 +213,7 @@ jobs:
               version_core=version_major"."version_minor
               print "VERSION_CORE="version_core
             }
-          ')
+          ' <<< "$LATEST_TAG")
           echo "TAG_NAME=$VERSION_CORE.$(date +%Y.%m.%d)+$COMMIT_HASH" >> $GITHUB_ENV
 
       - name: Publish Nightly Release
