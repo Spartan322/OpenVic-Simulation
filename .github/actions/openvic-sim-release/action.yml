@@ -55,7 +55,7 @@ runs:
       shell: bash
       run: |
         if [[ -z ${{ inputs.target-token }} ]]; then
-          echo "::error file=.github/actions/openvic-sim-release/action.yml,line=50,endLine=50::target-repo was set to a different repository and the target-token was not set."
+          echo "::error file=.github/actions/openvic-sim-release/action.yml,line=58,endLine=58::target-repo was set to a different repository and the target-token was not set."
           exit 1
         fi
         echo "TARGET_TOKEN=${{ inputs.target-token }}" >> $GITHUB_ENV

@@ -195,7 +195,7 @@ jobs:
             echo "::debug::COMMIT_HASH=$COMMIT_HASH"
 
             if [[ -z $COMMIT_HASH ]]; then
-              echo "::error file=.github/workflows/nightly-releases.yml,line=163,endLine=163::Could not find commit for hash $HASH_OF_TAG."
+              echo "::error file=.github/workflows/nightly-releases.yml,line=198,endLine=198::Could not find commit for hash $HASH_OF_TAG."
               exit 1
             fi
 
@@ -223,7 +223,7 @@ jobs:
           ' <<< "$LATEST_TAG")
           echo "::debug::VERSION_CORE=$VERSION_CORE"
 
-          echo "TAG_NAME=$VERSION_CORE.$(date +%Y.%m.%d)+${{ github.sha }}" >> $GITHUB_ENV
+          echo "TAG_NAME=$VERSION_CORE-nightly.$(date +%Y.%m.%d)+${{ github.sha }}" >> $GITHUB_ENV
 
       - name: Publish Nightly Release
         uses: ./.github/actions/openvic-sim-release
