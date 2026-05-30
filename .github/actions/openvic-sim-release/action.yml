@@ -155,7 +155,7 @@ runs:
           }')
 
         # Keep up to date with .github/actions/openvic-sim-release/nightly-release-notes-configuration.json
-        sed -i 's/<<RELEASE_NAME_REPLACEMENT>>/$version_core $prerelease_name $prerelease_date_or_version/g' release-notes.md
+        sed -i "s/<<RELEASE_NAME_REPLACEMENT>>/$version_core $prerelease_name $prerelease_date_or_version/g" release-notes.md
 
     - name: Process release-notes.md
       shell: bash
