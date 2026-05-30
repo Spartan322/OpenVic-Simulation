@@ -217,4 +217,5 @@ runs:
         prerelease: ${{ inputs.prerelease }}
         draft: ${{ inputs.snapshot-release == 'false' && inputs.nightly-release == 'false' }}
         repo: ${{ inputs.target-repo }}
+        owner: OpenVicProject
         token: ${{ env.TARGET_TOKEN }}
