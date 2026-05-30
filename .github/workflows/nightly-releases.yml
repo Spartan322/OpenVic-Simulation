@@ -232,7 +232,8 @@ jobs:
           nightly-release: true
           tag-name: ${{ env.TAG_NAME }}
           from-ref: ${{ env.FROM_REF }}
-          target-repo: ${{ github.env.TARGET_REPO }}
+          to-ref: ${{ github.sha }}
+          target-repo: ${{ env.TARGET_REPO }}
           src-token: ${{ secrets.GITHUB_TOKEN }}
           target-token: ${{ secrets.GITHUB_TOKEN }}
 
