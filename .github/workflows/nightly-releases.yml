@@ -235,5 +235,5 @@ jobs:
           to-ref: ${{ github.sha }}
           target-repo: ${{ env.TARGET_REPO }}
           src-token: ${{ secrets.GITHUB_TOKEN }}
-          target-token: ${{ secrets.GITHUB_TOKEN }}
+          target-token: ${{ secrets.NIGHTLY_RELEASE_REPO_PAT }}
 
