@@ -211,7 +211,7 @@ runs:
         omitBodyDuringUpdate: true
         name: "${{ env.RELEASE_NAME || '' }}"
         tag: "${{ env.TO_TAG || '' }}"
-        commit: "${{ !contains(inputs.to-ref, '.') && inputs.to-ref || '' }}"
+        commit: "${{ format('Spartan322/', inputs.target-repo) == github.repo && !contains(inputs.to-ref, '.') && inputs.to-ref || '' }}"
         bodyFile: "release-notes.md"
         makeLatest: ${{ inputs.latest }}
         prerelease: ${{ inputs.prerelease }}
