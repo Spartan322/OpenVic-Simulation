@@ -55,7 +55,10 @@ jobs:
             "pyproject.toml"
             "SConstruct"
             ".github/workflows/builds.yml"
+            ".github/actions/openvic-sim-release/action.yml"
             ".github/workflows/nightly-releases.yml"
+            ".github/actions/openvic-sim-release/action.yml"
+            ".github/actions/openvic-sim-release/nightly-release-notes-configuration.json"
           )
           if [[ -f .nightly_commit_hash ]]; then
             limit_args=(
@@ -169,41 +172,42 @@ jobs:
           fi
 
       - name: Get FROM_REF, LATEST_TAG, and COMMIT_HASH from latest release
-        env:
-          GH_TOKEN: ${{ github.token }}
+        if: env.LAST_MASTER_TAG_PUB_SEC >= env.LAST_NIGHTLY_TAG_PUB_SEC
         run: |
-          LATEST_TAG=""
-          COMMIT_HASH=""
-          if [[ $LAST_MASTER_TAG_PUB_SEC -gt $LAST_NIGHTLY_TAG_PUB_SEC ]]; then
-            LATEST_TAG=$(jq -r '.tagName' <<< "$LAST_MASTER_TAG_INFO")
-            echo "::debug::LATEST_TAG=$LATEST_TAG"
-            COMMIT_HASH=$(git rev-parse --verify -q $LATEST_TAG)
-            echo "::debug::COMMIT_HASH=$COMMIT_HASH"
-            echo "FROM_REF=$LATEST_TAG" >> $GITHUB_ENV
-          else
-            LATEST_TAG=$(jq -r '.tagName' <<< "$LAST_NIGHTLY_TAG_INFO")
-            echo "::debug::LATEST_TAG=$LATEST_TAG"
+          LATEST_TAG=$(jq -r '.tagName' <<< "$LAST_MASTER_TAG_INFO")
+          echo "::debug::LATEST_TAG=$LATEST_TAG"
 
-            LATEST_RELEASE_BODY=$(gh release view $LATEST_TAG -R OpenVicProject/${{ env.TARGET_REPO }} --json body --jq '.body')
-            echo "::debug::LATEST_RELEASE_BODY=$LATEST_RELEASE_BODY"
+          COMMIT_HASH=$(git rev-parse --verify -q $LATEST_TAG)
+          echo "::debug::COMMIT_HASH=$COMMIT_HASH"
 
-            # Keep up to date with .github/actions/openvic-sim-release/nightly-release-notes-configuration.json
-            HASH_OF_TAG=$(grep -oP 'Generated from: OpenVicProject/OpenVic-Simulation@\K[a-zA-Z0-9]+' <<< "$LATEST_RELEASE_BODY")
-            echo "::debug::HASH_OF_TAG=$HASH_OF_TAG"
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          echo "COMMIT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
+          echo "FROM_REF=$LATEST_TAG" >> $GITHUB_ENV
 
-            COMMIT_HASH=$(git rev-parse --verify -q $HASH_OF_TAG)
-            echo "::debug::COMMIT_HASH=$COMMIT_HASH"
+      - name: Get FROM_REF, LATEST_TAG, and COMMIT_HASH from latest release
+        if: env.LAST_MASTER_TAG_PUB_SEC < env.LAST_NIGHTLY_TAG_PUB_SEC
+        run: |
+          LATEST_TAG=$(jq -r '.tagName' <<< "$LAST_NIGHTLY_TAG_INFO")
+          echo "::debug::LATEST_TAG=$LATEST_TAG"
 
-            if [[ -z $COMMIT_HASH ]]; then
-              echo "::error file=.github/workflows/nightly-releases.yml,line=198,endLine=198::Could not find commit for hash $HASH_OF_TAG."
-              exit 1
-            fi
+          LATEST_RELEASE_BODY=$(gh release view $LATEST_TAG -R OpenVicProject/${{ env.TARGET_REPO }} --json body --jq '.body')
+          echo "::debug::LATEST_RELEASE_BODY=$LATEST_RELEASE_BODY"
 
-            echo "FROM_REF=$COMMIT_HASH" >> $GITHUB_ENV
+          # Keep up to date with .github/actions/openvic-sim-release/nightly-release-notes-configuration.json
+          HASH_OF_TAG=$(grep -oP 'Generated from: ${{ github.repository }}@\K[a-zA-Z0-9]+' <<< "$LATEST_RELEASE_BODY")
+          echo "::debug::HASH_OF_TAG=$HASH_OF_TAG"
+
+          COMMIT_HASH=$(git rev-parse --verify -q $HASH_OF_TAG)
+          echo "::debug::COMMIT_HASH=$COMMIT_HASH"
+
+          if [[ -z $COMMIT_HASH ]]; then
+            echo "::error file=.github/workflows/nightly-releases.yml,line=201,endLine=201::Could not find commit for hash $HASH_OF_TAG."
+            exit 1
           fi
 
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
           echo "COMMIT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
+          echo "FROM_REF=$COMMIT_HASH" >> $GITHUB_ENV
 
       - name: Process release into TAG_NAME
         run: |
@@ -232,6 +236,7 @@ jobs:
           nightly-release: true
           tag-name: ${{ env.TAG_NAME }}
           from-ref: ${{ env.FROM_REF }}
+          from-tag: ${{ env.LATEST_TAG }}
           to-ref: ${{ github.sha }}
           target-repo: ${{ env.TARGET_REPO }}
           src-token: ${{ secrets.GITHUB_TOKEN }}

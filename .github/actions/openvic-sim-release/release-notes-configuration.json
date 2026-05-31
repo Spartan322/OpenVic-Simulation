@@ -47,8 +47,8 @@
             "consume": true
         }
     ],
-    "template": "## Release Notes for OpenVic-Simulation #{{RELEASE_VERSION}}\n### Changelog since [#{{SINCE_VERSION}}](https://github.com/username/repo/releases/tag/#{{SINCE_VERSION}})\n#{{CHANGELOG}}\n\n**Full Changelog**: #{{RELEASE_DIFF}}",
-    "empty_template": "## Release Notes for OpenVic-Simulation #{{RELEASE_VERSION}}\n### No Pull Requests since [#{{SINCE_VERSION}}](https://github.com/username/repo/releases/tag/#{{SINCE_VERSION}})\n\n**Full Changelog**: #{{RELEASE_DIFF}}",
+    "template": "## Release Notes for <<REPO_NAME>> #{{RELEASE_VERSION}}\n### Changelog since [#{{SINCE_VERSION}}](https://github.com/<<REPO>>/releases/tag/#{{SINCE_VERSION}})\n#{{CHANGELOG}}\n\n**Full Changelog**: #{{RELEASE_DIFF}}",
+    "empty_template": "## Release Notes for <<REPO_NAME>> #{{RELEASE_VERSION}}\n### No Pull Requests since [#{{SINCE_VERSION}}](https://github.com/<<REPO>>/releases/tag/#{{SINCE_VERSION}})\n\n**Full Changelog**: #{{RELEASE_DIFF}}",
     "pr_template": "* #{{TITLE}} by @#{{AUTHOR}} in #{{URL}}",
     "max_pull_requests": 1000,
     "max_back_track_time_days": 365

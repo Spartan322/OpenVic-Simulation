@@ -18,6 +18,10 @@ inputs:
     description: Tag/Commit to source the release notes from
     type: string
     required: true
+  from-tag:
+    description: 'Tag name being sourced from (default: from-ref)'
+    default: ''
+    type: string
   nightly-release:
     description: Whether the release is a nightly build
     type: boolean
@@ -113,7 +117,7 @@ runs:
       shell: bash
       run: |
         # Sets major, minor, patch, prerelease_type, prerelease_version, year, month, day, dev, and hash values in bash environment
-        declare $(echo "${{ inputs.tag-name }}" | awk '
+        declare $(awk '
           split($0, sections, /[-+]?/) split(sections[1], version, /\./) split(sections[2], prerelease, /\./) {
             year=""
             month=""
@@ -156,14 +160,21 @@ runs:
             }
 
             print "version_core="version_core, "prerelease_type="prerelease[1] dotted_dev, "prerelease_version="prerelease_version, "prerelease_name="prerelease_name, "prerelease_date_or_version="prerelease_date_or_version, "hash="sections[3]
-          }')
+          }' <<< "${{ inputs.tag-name }}")
 
         # Keep up to date with .github/actions/openvic-sim-release/nightly-release-notes-configuration.json
         sed -i "s/<<RELEASE_NAME_REPLACEMENT>>/$version_core $prerelease_name $prerelease_date_or_version/g" release-notes.md
+        sed -i "s/<<FROM_TAG_NAME_REPLACEMENT>>/${{ inputs.from-tag || inputs.from-ref }}/g" release-notes.md
 
     - name: Process release-notes.md
       shell: bash
       run: |
+        # Replace <<REPO>> with owner/repo-name
+        sed -i 's/<<REPO>>/${{ github.repository }}/g' release-notes.md
+
+        # Replace <<REPO_NAME>> with repo-name
+        sed -i "s/<<REPO_NAME>>/$(basename ${{ github.repository }})/g" release-notes.md
+
         # Capitalize contents of <<capitalize:contents>>
         # Strip <<capitalize: and >>
         # Can use as inner contents to <<optional:>>
@@ -211,7 +222,7 @@ runs:
         omitBodyDuringUpdate: true
         name: "${{ env.RELEASE_NAME || '' }}"
         tag: "${{ env.TO_TAG || '' }}"
-        commit: "${{ format('Spartan322/', inputs.target-repo) == github.repo && !contains(inputs.to-ref, '.') && inputs.to-ref || '' }}"
+        commit: "${{ format('Spartan322/{0}', inputs.target-repo) == github.repo && !contains(inputs.to-ref, '.') && inputs.to-ref || '' }}"
         bodyFile: "release-notes.md"
         makeLatest: ${{ inputs.latest }}
         prerelease: ${{ inputs.prerelease }}
