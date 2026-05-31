@@ -166,20 +166,21 @@ runs:
         sed -i "s/<<RELEASE_NAME_REPLACEMENT>>/$version_core $prerelease_name $prerelease_date_or_version/g" release-notes.md
         sed -i "s/<<FROM_TAG_NAME_REPLACEMENT>>/${{ inputs.from-tag || inputs.from-ref }}/g" release-notes.md
 
-    - name: Process release-notes.md
+    - name: Replace <<REPO>> in release-notes.md
+      shell: bash
+      run: sed -i 's/<<REPO>>/${{ github.repository }}/g' release-notes.md
+
+    - name: Replace <<REPO_NAME>> in release-notes.md
+      shell: bash
+      run: sed -i "s/<<REPO_NAME>>/$(basename ${{ github.repository }})/g" release-notes.md
+
+    - name: Capitalize everything in <<capitalize:>> in release-notes.md
+      shell: bash
+      run: sed -i 's/<<capitalize:\([^>]*\)*>>/\u\1/g' release-notes.md
+
+    - name: Handle <<optional:>> in release-notes.md
       shell: bash
       run: |
-        # Replace <<REPO>> with owner/repo-name
-        sed -i 's/<<REPO>>/${{ github.repository }}/g' release-notes.md
-
-        # Replace <<REPO_NAME>> with repo-name
-        sed -i "s/<<REPO_NAME>>/$(basename ${{ github.repository }})/g" release-notes.md
-
-        # Capitalize contents of <<capitalize:contents>>
-        # Strip <<capitalize: and >>
-        # Can use as inner contents to <<optional:>>
-        sed -i 's/<<capitalize:\([^>]*\)*>>/\u\1/g' release-notes.md
-
         # Trim whitespace around of <<optional:contents>>
         # Add space to both sides of contents
         # Replace empty double space <<optional:  >> tag (representing empty optional) with single space
@@ -187,7 +188,9 @@ runs:
         # strip <<trim-right: and >>
         sed -i 's/[ ]*<<optional:\([^>]*\)*>>[ ]*/<<optional: \1 >>/g; s/<<optional:  >>/ /g; s/<<optional:\([^>]*\)*>>/\1/g' release-notes.md
 
-        echo "RELEASE_NAME=$(grep -oP '^##\s*Release Notes for\s+\K.*' release-notes.md | head -n1)" >> $GITHUB_ENV
+    - name: Retrieve RELEASE_NAME from release-notes.md
+      shell: bash
+      run: echo "RELEASE_NAME=$(grep -oP '^##\s*Release Notes for\s+\K.*' release-notes.md | head -n1)" >> $GITHUB_ENV
 
     - name: Make library directory
       shell: sh
