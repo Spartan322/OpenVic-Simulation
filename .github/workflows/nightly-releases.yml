@@ -196,7 +196,7 @@ jobs:
           echo "::debug::LATEST_RELEASE_BODY=$LATEST_RELEASE_BODY"
 
           # Keep up to date with .github/actions/openvic-sim-release/nightly-release-notes-configuration.json
-          HASH_OF_TAG=$(grep -oP 'Generated from: ${{ github.repository }}@\K[a-zA-Z0-9]+' <<< "$LATEST_RELEASE_BODY")
+          HASH_OF_TAG=$(grep -oP 'Generated from: OpenVicProject/OpenVic-Simulation@\K[a-zA-Z0-9]+' <<< "$LATEST_RELEASE_BODY")
           echo "::debug::HASH_OF_TAG=$HASH_OF_TAG"
 
           COMMIT_HASH=$(git rev-parse --verify -q $HASH_OF_TAG)
