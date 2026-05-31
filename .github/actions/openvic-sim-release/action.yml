@@ -168,7 +168,7 @@ runs:
 
     - name: Replace <<REPO>> in release-notes.md
       shell: bash
-      run: sed -i 's/<<REPO>>/${{ github.repository }}/g' release-notes.md
+      run: sed -i "s/<<REPO>>/$(sed 's;\/;\\\/;g' <<< "${{ github.repository }}")/g" release-notes.md
 
     - name: Replace <<REPO_NAME>> in release-notes.md
       shell: bash
