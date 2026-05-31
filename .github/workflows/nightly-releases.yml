@@ -186,6 +186,8 @@ jobs:
 
       - name: Get FROM_REF, LATEST_TAG, and COMMIT_HASH from latest release
         if: env.LAST_MASTER_TAG_PUB_SEC < env.LAST_NIGHTLY_TAG_PUB_SEC
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           LATEST_TAG=$(jq -r '.tagName' <<< "$LAST_NIGHTLY_TAG_INFO")
           echo "::debug::LATEST_TAG=$LATEST_TAG"
