@@ -130,6 +130,7 @@ runs:
           validate_ref "$INPUTS_FROM_TAG" "inputs.from-tag"
         fi
 
+        # Nothing
         validate_non_empty "$INPUTS_SRC_TOKEN" "inputs.src-token"
 
         exit $EXIT_STATUS
